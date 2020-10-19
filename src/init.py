@@ -77,14 +77,16 @@ def get_parameters():
     parameters["molecule"] = ['PEEK', 'PEKK']
     parameters["para_weight"] = [0.60, 0.70, 0.80]
     parameters["density"] = [0.9, 1.0, 1.2, 1.3]
+    #parameters["n_compounds"] = [None]
     parameters["n_compounds"] = [
                                  [50, 75, 40], # List of lists 
                                  [100, 150, 80], 
                                  [200, 300, 160]
                                 ]
+    #parameters["polymer_lengths"] = [None]
     parameters["polymer_lengths"] = [
                                      [5, 10, 15] # List of lists
-                                    ]            # Must match length of n_compound lists
+                                    ]   # Must match length of n_compound lists
     parameters["pdi"] = [None]
     parameters["M_n"] = [None]
     parameters["forcefield"] = ['gaff']
