@@ -27,8 +27,8 @@ class Fry(DefaultSlurmEnvironment):
 def current_step(job):
     import gsd.hoomd
 
-    if job.isfile("trajectory.gsd"):
-        with gsd.hoomd.open(job.fn("trajectory.gsd")) as traj:
+    if job.isfile("sim_traj.gsd"):
+        with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
             return traj[-1].configuration.step
     return -1
 
@@ -40,7 +40,7 @@ def sampled(job):
 
 @MyProject.label
 def initialized(job):
-    return job.isfile("init.hoomdxml")
+    return job.isfile("init.pdb")
 
 
 @directives(executable="python -u")
@@ -65,6 +65,8 @@ def sample(job):
                 M_n = job.sp['M_n'],
                 remove_hydrogens = job.sp['remove_hydrogens']
             )
+
+        system.system_mb.save('init.pdb')
 
         simulation = simulate.Simulation(
                 system,
