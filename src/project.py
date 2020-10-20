@@ -54,6 +54,7 @@ def sample(job):
     import logging
 
     with job:
+        logging.info("Creating system...")
         system = simulate.System(
                 molecule = job.sp['molecule'],
                 para_weight = job.sp['para_weight'],
@@ -66,7 +67,9 @@ def sample(job):
                 remove_hydrogens = job.sp['remove_hydrogens']
             )
 
-        system.system_mb.save('init.pdb')
+        #system.system_mb.save('init.pdb')
+        logging.info("System generated...")
+        logging.info("Starting simulation...")
 
         simulation = simulate.Simulation(
                 system,
@@ -79,10 +82,12 @@ def sample(job):
                 ref_units = None,
                 mode = "gpu",
                 gsd_write = 1e5,
-                log_write = 1e3
+                log_write = 1e4
                 )
+        logging.info("Simulation object generated...")
 
         if job.sp['procedure'] == "quench":
+            logging.info("Beginning quench simulation...")
             simulation.quench(
                     kT = job.sp['kT_quench'],
                     n_steps = job.sp['n_steps'],
@@ -91,6 +96,7 @@ def sample(job):
                     )
 
         elif job.sp['procedure'] == "anneal":
+            logging.info("Beginning anneal simulation...")
             simulation.anneal(
                     kT_init = job.sp['kT_anneal'][0],
                     kT_final = job.sp['kT_anneal'][1],
@@ -100,3 +106,6 @@ def sample(job):
                     shrink_n_steps = 1e6
                     )
 
+
+if __name__ == "__main__":
+    MyProject().main()

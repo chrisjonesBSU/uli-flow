@@ -74,14 +74,16 @@ def get_parameters():
     '''
     parameters = OrderedDict()
     # System generation parameters:
-    parameters["molecule"] = ['PEEK', 'PEKK']
+    parameters["molecule"] = ['PEEK',
+                             #'PEKK'
+                             ]
     parameters["para_weight"] = [0.60, 0.70, 0.80]
-    parameters["density"] = [0.9, 1.0, 1.2, 1.3]
+    parameters["density"] = [1.2, 1.3]
     #parameters["n_compounds"] = [None]
     parameters["n_compounds"] = [
-                                 [50, 75, 40], # List of lists 
-                                 [100, 150, 80], 
-                                 [200, 300, 160]
+                                 [5, 5, 5], # List of lists 
+                                 #[100, 150, 80], 
+                                 #[200, 300, 160]
                                 ]
     #parameters["polymer_lengths"] = [None]
     parameters["polymer_lengths"] = [
@@ -96,18 +98,20 @@ def get_parameters():
     parameters["tau"] = [0.1]
     parameters["dt"] = [0.0001]
     parameters["e_factor"] = [0.5]
-    parameters["procedure"] = ["quench", "anneal"]
+    parameters["procedure"] = ["quench",
+                              #"anneal"
+                              ]
         # Quench related params:
-    parameters["kT_quench"] = [1.0] # Reduced Temp
+    parameters["kT_quench"] = [1.5] # Reduced Temp
     parameters["n_steps"] = [1e7]
         # Anneal related params
-    parameters["kT_anneal"] = [
-                               [2.0, 1.0]
-                              ] # List of [initial kT, final kT] Reduced Temps
-    parameters["anneal_sequence"] = [
-                                     [1e6, 3e5, 3e5, 5e5, 5e5, 1e6] # List of lists (n_steps)
-                                    ]
-    parameters["schedule"] = [None]
+    #parameters["kT_anneal"] = [
+    #                           [2.0, 1.0]
+    #                          ] # List of [initial kT, final kT] Reduced Temps
+    #parameters["anneal_sequence"] = [
+    #                                 [1e6, 3e5, 3e5, 5e5, 5e5, 1e6] # List of lists (n_steps)
+    #                                ]
+    #parameters["schedule"] = [None]
     return list(parameters.keys()), list(product(*parameters.values()))
 
 
