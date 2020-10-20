@@ -17,7 +17,7 @@ This repository contains the scripts needed in order to use [Signac and Signac-f
 - Run `python src/init.py` to generate the signac workspace
 
 ## Submit simulations:
-- Run `python src/project.py` to run uli-init (generate systems and initialize simulations)
+- Run `python src/project.pyv submit` to run uli-init (generate systems and initialize simulations)
 
 
 
