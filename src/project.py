@@ -9,6 +9,8 @@ from flow import FlowProject, directives
 from flow.environment import DefaultSlurmEnvironment
 from flow.environments.xsede import BridgesEnvironment, CometEnvironment
 
+class MyProject(FlowProject):
+    pass
 
 class Fry(DefaultSlurmEnvironment):
     hostname_pattern = "fry"
@@ -52,7 +54,6 @@ def sample(job):
     import logging
 
     with job:
-        
         system = simulate.System(
                 molecule = job.sp['molecule'],
                 para_weight = job.sp['para_weight'],
@@ -96,5 +97,4 @@ def sample(job):
                     shrink_kT = 10,
                     shrink_n_steps = 1e6
                     )
-
 
