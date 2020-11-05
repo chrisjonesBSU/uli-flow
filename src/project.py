@@ -65,7 +65,7 @@ def sample(job):
                 pdi = job.sp['pdi'],
                 M_n = job.sp['M_n'],
                 remove_hydrogens = job.sp['remove_hydrogens'],
-                seed = job.sp['seed']
+                seed = job.sp['system_seed']
             )
 
         #system.system_mb.save('init.pdb')
@@ -79,7 +79,7 @@ def sample(job):
                 e_factor = job.sp['e_factor'],
                 tau = job.sp['tau'],
                 dt = job.sp['dt'],
-                seed = job.sp['seed'],
+                seed = job.sp['sim_seed'],
                 auto_scale = True,
                 ref_units = None,
                 mode = "gpu",
