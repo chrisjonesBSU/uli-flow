@@ -93,11 +93,13 @@ def get_parameters():
     parameters["M_n"] = [None]
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [False]
-    
+    parameters["seed"] = [24]
+
     # Simulation parameters
     parameters["tau"] = [0.1]
     parameters["dt"] = [0.0001]
     parameters["e_factor"] = [0.5]
+    parameters["seed"] = [42]
     parameters["procedure"] = ["quench",
                               #"anneal"
                               ]
