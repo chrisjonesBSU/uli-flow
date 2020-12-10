@@ -71,6 +71,7 @@ def get_parameters():
 
     If you want to sample from a PDI:
         Change the polymer length lines to [None]
+        Change the n_compounds lines to [None]
 
     If you only want to run a quench simulation
         Comment out kT_anneal, anneal_sequence lines
@@ -81,6 +82,7 @@ def get_parameters():
     Don't forget to change the name of the project
     project = signac.init_project("project-name")
     '''
+
     parameters = OrderedDict()
     # System generation parameters:
     parameters["molecule"] = ['PEEK',
