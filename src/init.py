@@ -41,15 +41,24 @@ def get_parameters():
         A list of the number of monomer units in a single molecule
         Must be the same legnth as n_compounds list(s)
         See pdi parameter
+    sample_pdi : bool
+        Instruct uli-init to generate a distribution using a combination
+        of pdi, Mn, Mw. This will override n_compound and polymer_length
+        parameters
     pdi : float
         A PDI (poly-dispersity index) value of the generated system.
-        Using PDI will override n_compounds and polymer_lengths
-    M_n : int
+        pdi = Mn/Mw
+    Mn : int
         The most frequent polymer length of a polydisperse system
         Used in conjunction with pdi to determine distribution
         of polymer lengths in the system
+    Mw : int
+        The weight average of the polymer distribution.
     forcefield : str options are 'gaff' or 'opls'
         The forcefield type to use when calling Foyer
+    mass_dist : str
+        Specify the distribution to be used when sampling from a pdi
+        Options are: 'weibull' or 'gaussian'
 
     Simulation parameters:
     ----------------------
@@ -60,8 +69,9 @@ def get_parameters():
     ------------
     All temperatures are entered as reduced temperature units
 
-    If you want to use pdi and M_n:
-        Comment out n_compounds and polymer_lengths lines
+    If you want to sample from a PDI:
+        Change the polymer length lines to [None]
+        Change the n_compounds lines to [None]
 
     If you only want to run a quench simulation
         Comment out kT_anneal, anneal_sequence lines
@@ -72,12 +82,13 @@ def get_parameters():
     Don't forget to change the name of the project
     project = signac.init_project("project-name")
     '''
+
     parameters = OrderedDict()
     # System generation parameters:
     parameters["molecule"] = ['PEEK',
                              #'PEKK'
                              ]
-    parameters["para_weight"] = [0.60, 0.70, 0.80]
+    parameters["para_weight"] = [0.70]
     parameters["density"] = [1.2, 1.3]
     #parameters["n_compounds"] = [None]
     parameters["n_compounds"] = [
@@ -90,14 +101,16 @@ def get_parameters():
                                      [5, 10, 15] # List of lists
                                     ]   # Must match length of n_compound lists
     parameters["pdi"] = [None]
-    parameters["M_n"] = [None]
+    parameters["Mn"] = [None]
+    parameters["Mw"] = [None]
+    parameters['mass_dist'] = ['weibull']
     parameters["forcefield"] = ['gaff']
-    parameters["remove_hydrogens"] = [False]
+    parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
 
     # Simulation parameters
     parameters["tau"] = [0.1]
-    parameters["dt"] = [0.0001]
+    parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["procedure"] = ["quench",
@@ -105,8 +118,9 @@ def get_parameters():
                               ]
         # Quench related params:
     parameters["kT_quench"] = [1.5] # Reduced Temp
-    parameters["n_steps"] = [1e7]
-        # Anneal related params
+    parameters["n_steps"] = [5e7]
+
+        # Anneal related params:
     #parameters["kT_anneal"] = [
     #                           [2.0, 1.0]
     #                          ] # List of [initial kT, final kT] Reduced Temps
