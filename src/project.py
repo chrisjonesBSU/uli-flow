@@ -35,11 +35,6 @@ def current_step(job):
 
 @MyProject.label
 def sampled(job):
-    print('in sampled function')
-    print(current_step(job))
-    print(job.doc.steps)
-    already_sampled = current_step(job) >= job.doc.steps
-    print(already_sampled)
     return current_step(job) >= job.doc.steps
 
 
@@ -54,9 +49,6 @@ def initialized(job):
 # @MyProject.pre.after(initialize)
 @MyProject.post(sampled)
 def sample(job):
-    print('SAMPLED FUNCTION OUTPUT:')
-    sampled_output = sampled(job)
-    print(sampled_output)
     from uli_init import simulate
     import os
     import logging
@@ -70,11 +62,11 @@ def sample(job):
                 n_compounds = job.sp['n_compounds'],
                 polymer_lengths = job.sp['polymer_lengths'],
                 forcefield = job.sp['forcefield'],
-                sample_pdi = job.sp['sample_pdi'],
+                sample_pdi = job.doc.sample_pdi,
                 pdi = job.sp['pdi'],
                 Mn = job.sp['Mn'],
                 Mw = job.sp['Mw'],
-                mass_dist_type = job.sp['mass_dist']
+                mass_dist_type = job.sp['mass_dist'],
                 remove_hydrogens = job.sp['remove_hydrogens'],
                 seed = job.sp['system_seed']
             )

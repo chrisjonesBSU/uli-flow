@@ -144,6 +144,10 @@ def main():
         except:
             parent_job.doc.setdefault("steps", np.sum(parent_statepoint["anneal_sequence"]))
             parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
+        if any([parent_job.sp['Mn'], parent_job.sp['pdi'], parent_job.sp['Mw']]):
+            parent_job.doc.setdefault("sample_pdi", True)
+        else:
+            parent_job.doc.setdefault("sample_pdi", False)
     project.write_statepoints()
 
 if __name__ == "__main__":
