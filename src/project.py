@@ -70,8 +70,11 @@ def sample(job):
                 n_compounds = job.sp['n_compounds'],
                 polymer_lengths = job.sp['polymer_lengths'],
                 forcefield = job.sp['forcefield'],
+                sample_pdi = job.sp['sample_pdi'],
                 pdi = job.sp['pdi'],
-                M_n = job.sp['M_n'],
+                Mn = job.sp['Mn'],
+                Mw = job.sp['Mw'],
+                mass_dist_type = job.sp['mass_dist']
                 remove_hydrogens = job.sp['remove_hydrogens'],
                 seed = job.sp['system_seed']
             )
