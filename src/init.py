@@ -140,13 +140,8 @@ def main():
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
         try:
-            print('IN TRY STATEMENT')
-            print(parent_statepoint["n_steps"])
             parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
         except:
-            print('IN EXCEPT STATEMENT')
-            print('NUMBER OF STEPS')
-            print(np.sum(parent_statepoint["anneal_sequence"]))
             parent_job.doc.setdefault("steps", np.sum(parent_statepoint["anneal_sequence"]))
             parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
     project.write_statepoints()
