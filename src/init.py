@@ -14,6 +14,7 @@ import signac
 import logging
 from collections import OrderedDict
 from itertools import product
+import numpy as np
 
 def get_parameters():
     '''
@@ -77,8 +78,8 @@ def get_parameters():
     parameters["molecule"] = ['PEEK',
                              #'PEKK'
                              ]
-    parameters["para_weight"] = [0.60, 0.70, 0.80]
-    parameters["density"] = [1.2, 1.3]
+    parameters["para_weight"] = [0.70]
+    parameters["density"] = [0.9]
     #parameters["n_compounds"] = [None]
     parameters["n_compounds"] = [
                                  [5, 5, 5], # List of lists 
@@ -97,23 +98,23 @@ def get_parameters():
 
     # Simulation parameters
     parameters["tau"] = [0.1]
-    parameters["dt"] = [0.0001]
+    parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
-    parameters["procedure"] = ["quench",
-                              #"anneal"
+    parameters["procedure"] = [#"quench",
+                              "anneal"
                               ]
         # Quench related params:
-    parameters["kT_quench"] = [1.5] # Reduced Temp
-    parameters["n_steps"] = [1e7]
+    #parameters["kT_quench"] = [1.5] # Reduced Temp
+    #parameters["n_steps"] = [1e7]
         # Anneal related params
-    #parameters["kT_anneal"] = [
-    #                           [2.0, 1.0]
-    #                          ] # List of [initial kT, final kT] Reduced Temps
-    #parameters["anneal_sequence"] = [
-    #                                 [1e6, 3e5, 3e5, 5e5, 5e5, 1e6] # List of lists (n_steps)
-    #                                ]
-    #parameters["schedule"] = [None]
+    parameters["kT_anneal"] = [
+                               [6.0, 2.0]
+                              ] # List of [initial kT, final kT] Reduced Temps
+    parameters["anneal_sequence"] = [
+                                     [2e5, 1e5, 3e5, 5e5, 5e5, 1e5] # List of lists (n_steps)
+                                    ]
+    parameters["schedule"] = [None]
     return list(parameters.keys()), list(product(*parameters.values()))
 
 
@@ -125,7 +126,16 @@ def main():
         parent_statepoint = dict(zip(param_names, params))
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
-        parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
+        try:
+            print('IN TRY STATEMENT')
+            print(parent_statepoint["n_steps"])
+            parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
+        except:
+            print('IN EXCEPT STATEMENT')
+            print('NUMBER OF STEPS')
+            print(np.sum(parent_statepoint["anneal_sequence"]))
+            parent_job.doc.setdefault("steps", np.sum(parent_statepoint["anneal_sequence"]))
+            parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
     project.write_statepoints()
 
 if __name__ == "__main__":

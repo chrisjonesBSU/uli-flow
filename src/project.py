@@ -35,6 +35,11 @@ def current_step(job):
 
 @MyProject.label
 def sampled(job):
+    print('in sampled function')
+    print(current_step(job))
+    print(job.doc.steps)
+    already_sampled = current_step(job) >= job.doc.steps
+    print(already_sampled)
     return current_step(job) >= job.doc.steps
 
 
@@ -49,6 +54,9 @@ def initialized(job):
 # @MyProject.pre.after(initialize)
 @MyProject.post(sampled)
 def sample(job):
+    print('SAMPLED FUNCTION OUTPUT:')
+    sampled_output = sampled(job)
+    print(sampled_output)
     from uli_init import simulate
     import os
     import logging
@@ -102,7 +110,7 @@ def sample(job):
             simulation.anneal(
                     kT_init = job.sp['kT_anneal'][0],
                     kT_final = job.sp['kT_anneal'][1],
-                    step_sequence = job.sp['step_sequence'],
+                    step_sequence = job.sp['anneal_sequence'],
                     schedule = job.sp['schedule'],
                     shrink_kT = 10,
                     shrink_steps = 1e6
