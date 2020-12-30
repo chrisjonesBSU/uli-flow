@@ -50,6 +50,8 @@ def initialized(job):
 @MyProject.post(sampled)
 def sample(job):
     from uli_init import simulate
+    from uli_init.utils import base_units, unit_conversions
+    import numpy as np
     import os
     import logging
 
@@ -71,7 +73,16 @@ def sample(job):
                 seed = job.sp['system_seed']
             )
 
-        #system.system_mb.save('init.pdb')
+        if system.system_pmd:
+            system.system_pmd.save('init.pdb', overwrite=True)
+        else:
+            system.system_mb.save('init.pdb', overwrite=True)
+
+        job.doc['num_para'] = system.para
+        job.doc['num_meta'] = system.meta
+        job.doc['num_compounds'] = system.n_compounds
+        job.doc['polymer_lengths'] = system.polymer_lengths
+
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
@@ -90,8 +101,19 @@ def sample(job):
                 log_write = 1e4
                 )
         logging.info("Simulation object generated...")
+        job.doc['ref_energy'] = simulation.ref_energy
+        job.doc['ref_distance'] = simulation.ref_distance
+        job.doc['ref_mass'] = simulation.ref_mass
+        job.doc['real_timestep'] = unit_conversions.convert_to_real_time(simulation.dt,
+                                                    simulation.ref_energy,
+                                                    simulation.ref_distance,
+                                                    simulation.ref_mass)
+        job.doc['time_unit'] = 'fs'
 
         if job.sp['procedure'] == "quench":
+            job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(job.sp['kT_quench'],
+                                                    simulation.ref_energy)
+            job.doc['T_unit'] = 'K'
             logging.info("Beginning quench simulation...")
             simulation.quench(
                     kT = job.sp['kT_quench'],
@@ -102,6 +124,16 @@ def sample(job):
 
         elif job.sp['procedure'] == "anneal":
             logging.info("Beginning anneal simulation...")
+            if not job.sp['schedule']:
+                kT_list = np.linspace(job.sp['kT_anneal'][0],
+                                      job.sp['kT_anneal'][1],
+                                      len(job.sp['anneal_sequence']),
+                                      )
+                kT_SI = [unit_conversions.kelvin_from_reduced(kT, simulation.ref_energy)
+                            for kT in kT_list]
+                job.doc['T_SI'] = kT_SI
+                job.doc['T_unit'] = 'K'
+
             simulation.anneal(
                     kT_init = job.sp['kT_anneal'][0],
                     kT_final = job.sp['kT_anneal'][1],
