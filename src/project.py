@@ -97,9 +97,10 @@ def sample(job):
                 auto_scale = True,
                 ref_units = None,
                 mode = "gpu",
-                gsd_write = 1e5,
-                log_write = 1e4
+                gsd_write = max([int(job.doc['steps']/100), 1]),
+                log_write = max([int(job.doc['steps']/10000), 1])
                 )
+
         logging.info("Simulation object generated...")
         job.doc['ref_energy'] = simulation.ref_energy
         job.doc['ref_distance'] = simulation.ref_distance
