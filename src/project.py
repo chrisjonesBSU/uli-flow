@@ -42,6 +42,9 @@ def sampled(job):
 def initialized(job):
     return job.isfile("init.pdb")
 
+@MyProject.label
+def rdf_done(job):
+    return job.isfile("rdf.csv")
 
 @directives(executable="python -u")
 @directives(ngpu=1)
@@ -143,6 +146,52 @@ def sample(job):
                     shrink_kT = 10,
                     shrink_steps = 1e6
                     )
+
+@MyProject.operation
+@MyProject.pre.after(sampled)
+@MyProject.post(rdf_done)
+@MyProject.with_job
+def post_process(job):
+    '''
+    1. Independence sampling using .log file
+        - Update job doc
+        - Save the sampled data to a new .log file
+    2. Compute average RDF over 10-15 frames
+        - Check a few different atom types
+        - Save results to .csv files
+    3. Compute MSD
+        - Check a few different atom types
+        - Save results to .csv files
+    4. Save some plots (PE, RDF, MSD) in pdf format
+    5. 
+
+    '''
+    import gsd.hoomd
+    import freud
+    import numpy as np
+    from cme_lab_utils import msd, rdf, sampler
+
+    if job.sp['process'] == 'quench':
+        start_index = 0
+    elif:
+        job.sp['process'] == 'anneal': # Only want to sample from last temp
+            start_index = -job.sp['anneal_sequence'][-1]
+
+    job_log_file = np.genfromtxt(job.fn('sim_traj.log', delimiter='\t', names=True)
+    samples = sampler.Mbar(job_log_file['potential_energy'][start_index:], nskip=1)
+    job.doc['production_start'] = samples.start # Starting index of production region
+    job.doc['production_ineff'] = samples.ineff # Statistical inefficiency of production region
+    job.doc['production_size'] = samples.production_size # Size of production region
+    sampled_indices = samples.indices
+    job.doc['num_ind_samples'] = len(sampled_indices)
+    sampled_data = job_log_file[sampled_indices]
+
+
+    
+
+
+                           
+
 
 
 if __name__ == "__main__":
