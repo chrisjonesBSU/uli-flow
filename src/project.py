@@ -46,6 +46,10 @@ def initialized(job):
 def rdf_done(job):
     return job.isfile("rdf.csv")
 
+@MyProject.label
+def ind_sampling_done(job):
+    return job.isfile("sim_traj_equil.log")
+
 @directives(executable="python -u")
 @directives(ngpu=1)
 @MyProject.operation
@@ -113,6 +117,8 @@ def sample(job):
                                                     simulation.ref_distance,
                                                     simulation.ref_mass)
         job.doc['time_unit'] = 'fs'
+        job.doc['steps_per_frame'] = simulation.gsd_write
+        job.doc['steps_per_log'] = simulation.log_write
 
         if job.sp['procedure'] == "quench":
             job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(job.sp['kT_quench'],
@@ -147,13 +153,14 @@ def sample(job):
                     shrink_steps = 1e6
                     )
 
+@directives(executable="python -u")
 @MyProject.operation
 @MyProject.pre.after(sampled)
 @MyProject.post(rdf_done)
 @MyProject.with_job
 def post_process(job):
     '''
-    1. Independence sampling using .log file
+    X 1. Independence sampling using .log file
         - Update job doc
         - Save the sampled data to a new .log file
     2. Compute average RDF over 10-15 frames
@@ -170,6 +177,8 @@ def post_process(job):
     import freud
     import numpy as np
     from cme_lab_utils import msd, rdf, sampler
+    
+    # Perform independence sampling:
 
     if job.sp['process'] == 'quench':
         start_index = 0
@@ -186,14 +195,17 @@ def post_process(job):
     job.doc['production_ineff'] = samples.ineff # Statistical inefficiency of prod region
     job.doc['production_size'] = samples.production_size # Size of prod region
     job.doc['num_ind_samples'] = len(samples.indices)
-    sampled_data = job_log_file[samples.indices]
+    sampled_data = job_log_file[samples.start:][samples.indices]
     col_names = [name for name in job_log_file.dtype.names]
     headers = "{}\t"*(len(col_names) - 1)+"{}"
     np.savetxt(job.fn('sim_traj_equil.log'),
                 sampled_data,
                 header = headers.format(*col_names)
               )
+    
+    # Calculate some RDFs from GSD files and save results to txt files
 
+    with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
 
 
     
