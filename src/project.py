@@ -177,14 +177,23 @@ def post_process(job):
         job.sp['process'] == 'anneal': # Only want to sample from last temp
             start_index = -job.sp['anneal_sequence'][-1]
 
-    job_log_file = np.genfromtxt(job.fn('sim_traj.log', delimiter='\t', names=True)
+    job_log_file = np.genfromtxt(job.fn('sim_traj.log'),
+                                delimiter='\t',
+                                names=True
+                                )
     samples = sampler.Mbar(job_log_file['potential_energy'][start_index:], nskip=1)
     job.doc['production_start'] = samples.start # Starting index of production region
-    job.doc['production_ineff'] = samples.ineff # Statistical inefficiency of production region
-    job.doc['production_size'] = samples.production_size # Size of production region
-    sampled_indices = samples.indices
-    job.doc['num_ind_samples'] = len(sampled_indices)
-    sampled_data = job_log_file[sampled_indices]
+    job.doc['production_ineff'] = samples.ineff # Statistical inefficiency of prod region
+    job.doc['production_size'] = samples.production_size # Size of prod region
+    job.doc['num_ind_samples'] = len(samples.indices)
+    sampled_data = job_log_file[samples.indices]
+    col_names = [name for name in job_log_file.dtype.names]
+    headers = "{}\t"*(len(col_names) - 1)+"{}"
+    np.savetxt(job.fn('sim_traj_equil.log'),
+                sampled_data,
+                header = headers.format(*col_names)
+              )
+
 
 
     
