@@ -153,11 +153,11 @@ def sample(job):
                     shrink_steps = 1e6
                     )
 
-@directives(executable="python -u")
+print('Starting post_process')
 @MyProject.operation
-@MyProject.pre.after(sampled)
+#@MyProject.pre.after(sampled)
 @MyProject.post(rdf_done)
-@MyProject.with_job
+#@MyProject.with_job
 def post_process(job):
     '''
     X 1. Independence sampling using .log file
@@ -179,18 +179,17 @@ def post_process(job):
     from cme_lab_utils import msd, rdf, sampler
     
     # Perform independence sampling:
-
-    if job.sp['process'] == 'quench':
+    if job.sp['procedure'] == 'quench':
         start_index = 0
-    elif:
-        job.sp['process'] == 'anneal': # Only want to sample from last temp
-            start_index = -job.sp['anneal_sequence'][-1]
+    elif job.sp['procedure'] == 'anneal': # Only want to sample from last temp
+            start_index = -job.sp['anneal_sequence'][-1] // job.doc['steps_per_log']
 
     job_log_file = np.genfromtxt(job.fn('sim_traj.log'),
                                 delimiter='\t',
                                 names=True
                                 )
-    samples = sampler.Mbar(job_log_file['potential_energy'][start_index:], nskip=1)
+    pe = job_log_file['potential_energy']
+    samples = sampler.Mbar(pe[start_index:], nskip=1)
     job.doc['production_start'] = samples.start # Starting index of production region
     job.doc['production_ineff'] = samples.ineff # Statistical inefficiency of prod region
     job.doc['production_size'] = samples.production_size # Size of prod region
@@ -202,10 +201,10 @@ def post_process(job):
                 sampled_data,
                 header = headers.format(*col_names)
               )
-    
+    logging.info('Finished independence sampling...) 
     # Calculate some RDFs from GSD files and save results to txt files
 
-    with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
+    #with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
 
 
     
