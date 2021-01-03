@@ -201,10 +201,36 @@ def post_process(job):
                 sampled_data,
                 header = headers.format(*col_names)
               )
-    logging.info('Finished independence sampling...) 
-    # Calculate some RDFs from GSD files and save results to txt files
+    logging.info("Finished independence sampling...") 
 
-    #with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
+    # Calculate some RDFs and MSDs from GSD files and save results to txt files
+    with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
+        types = [['ca', 'ca'], ['oh', 'oh']]
+        rdf_dir = os.path.join(job.ws(), 'rdf-results')
+        os.mkdir(rdf_dir)
+        for pair in types:
+            pair_rdf = rdf.gsd_rdf(traj,
+                                   pair[0],
+                                   pair[1],
+                                   start=-10
+                                   )
+            x = pair_rdf.bin_centers
+            y = pair_rdf.rdf
+            np.savetxt(os.path.join(rdf_dir, '{}_{}.txt'.format(*pairs)),
+                          np.transpose([x, y]),
+                          header = ["x", "y"] 
+                          delimiter=","
+                          )
+        logging.info("Finished RDF calculations...")
+
+        # Start MSD calculations
+
+                          
+
+
+
+
+
 
 
     
