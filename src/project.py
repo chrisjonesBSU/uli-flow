@@ -153,7 +153,7 @@ def sample(job):
                     shrink_steps = 1e6
                     )
 
-print('Starting post_process')
+@directives()
 @MyProject.operation
 #@MyProject.pre.after(sampled)
 @MyProject.post(rdf_done)
@@ -177,6 +177,8 @@ def post_process(job):
     import freud
     import numpy as np
     from cme_lab_utils import msd, rdf, sampler
+    import os
+    import logging
     
     # Perform independence sampling:
     if job.sp['procedure'] == 'quench':
@@ -204,24 +206,24 @@ def post_process(job):
     logging.info("Finished independence sampling...") 
 
     # Calculate some RDFs and MSDs from GSD files and save results to txt files
-    with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
-        types = [['ca', 'ca'], ['oh', 'oh']]
-        rdf_dir = os.path.join(job.ws(), 'rdf-results')
+    types = [['ca', 'ca'], ['oh', 'oh']]
+    rdf_dir = os.path.join(job.ws, 'rdf-results')
+    if not os.path.exists(rdf_dir):
         os.mkdir(rdf_dir)
-        for pair in types:
-            pair_rdf = rdf.gsd_rdf(traj,
-                                   pair[0],
-                                   pair[1],
-                                   start=-10
-                                   )
-            x = pair_rdf.bin_centers
-            y = pair_rdf.rdf
-            np.savetxt(os.path.join(rdf_dir, '{}_{}.txt'.format(*pairs)),
-                          np.transpose([x, y]),
-                          header = ["x", "y"] 
-                          delimiter=","
-                          )
-        logging.info("Finished RDF calculations...")
+    for pair in types:
+        pair_rdf = rdf.gsd_rdf(job.fn("sim_traj.gsd"),
+                               pair[0],
+                               pair[1],
+                               start=-2
+                               )
+        x = pair_rdf.bin_centers
+        y = pair_rdf.rdf
+        np.savetxt(os.path.join(rdf_dir, '{}_{}.txt'.format(*pair)),
+                   np.transpose([x, y]),
+                   header = "x,y", 
+                   delimiter=","
+                  )
+    logging.info("Finished RDF calculations...")
 
         # Start MSD calculations
 
