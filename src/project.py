@@ -8,6 +8,7 @@ status, execute operations and submit them to a cluster. See also:
 from flow import FlowProject, directives
 from flow.environment import DefaultSlurmEnvironment
 from flow.environments.xsede import BridgesEnvironment, CometEnvironment
+import os
 
 class MyProject(FlowProject):
     pass
@@ -42,24 +43,36 @@ def sampled(job):
 def initialized(job):
     return job.isfile("init.pdb")
 
+
 @MyProject.label
 def rdf_done(job):
-    return job.isfile("rdf.csv")
+    if len(os.listdir(os.path.join(job.ws, 'rdf-results'))) > 0:
+        return True
+    else:
+        return False
+
+
+@MyProject.label
+def msd_done(job):
+    if len(os.listdir(os.path.join(job.ws, 'msd-results'))) > 0:
+        return True
+    else:
+        return False
+    
 
 @MyProject.label
 def ind_sampling_done(job):
     return job.isfile("sim_traj_equil.log")
 
+
 @directives(executable="python -u")
 @directives(ngpu=1)
 @MyProject.operation
-# @MyProject.pre.after(initialize)
 @MyProject.post(sampled)
 def sample(job):
     from uli_init import simulate
     from uli_init.utils import base_units, unit_conversions
     import numpy as np
-    import os
     import logging
 
     with job:
@@ -155,9 +168,10 @@ def sample(job):
 
 @directives()
 @MyProject.operation
-#@MyProject.pre.after(sampled)
+@MyProject.pre(sampled)
 @MyProject.post(rdf_done)
-#@MyProject.with_job
+@MyProject.post(msd_done)
+@MyProject.post(ind_sampling_done)
 def post_process(job):
     '''
     X 1. Independence sampling using .log file
@@ -177,7 +191,6 @@ def post_process(job):
     import freud
     import numpy as np
     from cme_lab_utils import msd, rdf, sampler, gsd_utils
-    import os
     import logging
     import matplotlib.pyplot as plt
     
