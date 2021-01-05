@@ -179,6 +179,7 @@ def post_process(job):
     from cme_lab_utils import msd, rdf, sampler, gsd_utils
     import os
     import logging
+    import matplotlib.pyplot as plt
     
     # Perform independence sampling:
     if job.sp['procedure'] == 'quench':
@@ -218,6 +219,12 @@ def post_process(job):
                                )
         x = pair_rdf.bin_centers
         y = pair_rdf.rdf
+        fig = plt.figure()
+        plt.plot(x, y)
+        plt.title("RDF: Atom Types {} {}".format(*pair))
+        plt.xlabel('r')
+        plt.ylabel('g(r)')
+        fig.savefig(os.path.join(rdf_dir, "{}_{}.pdf".format(*pair)))
         np.savetxt(os.path.join(rdf_dir, '{}_{}.txt'.format(*pair)),
                    np.transpose([x, y]),
                    header = "x,y", 
@@ -236,6 +243,14 @@ def post_process(job):
                                        atom_type = atom_type,
                                        msd_mode="window"
                                       )
+        
+        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * job.doc['steps_per_frame']
+        fig = plt.figure()
+        plt.plot(seconds, msd_results)
+        plt.title("Mean Square Displacement")
+        plt.xlabel("Seconds")
+        plt.ylabel("MSD ($\AA^2$)")
+        fig.savefig(os.path.join(msd_dir, "{}.pdf".format(atom_type)))
         np.savetxt(os.path.join(msd_dir, '{}.txt'.format(atom_type)),
                    msd_results
                    )
