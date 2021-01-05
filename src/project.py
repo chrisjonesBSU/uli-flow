@@ -176,7 +176,7 @@ def post_process(job):
     import gsd.hoomd
     import freud
     import numpy as np
-    from cme_lab_utils import msd, rdf, sampler
+    from cme_lab_utils import msd, rdf, sampler, gsd_utils
     import os
     import logging
     
@@ -214,7 +214,7 @@ def post_process(job):
         pair_rdf = rdf.gsd_rdf(job.fn("sim_traj.gsd"),
                                pair[0],
                                pair[1],
-                               start=-2
+                               start=-10
                                )
         x = pair_rdf.bin_centers
         y = pair_rdf.rdf
@@ -225,7 +225,22 @@ def post_process(job):
                   )
     logging.info("Finished RDF calculations...")
 
-        # Start MSD calculations
+    # Start MSD calculations
+    types = ["ca", "oh"]
+    msd_dir = os.path.join(job.ws, 'msd-results')
+    if not os.path.exists(msd_dir):
+        os.mkdir(msd_dir)
+    for atom_type in types:
+        msd_results = msd.msd_from_gsd(job.fn("sim_traj.gsd"),
+                                       start=-10, stop=-1,
+                                       atom_type = atom_type,
+                                       msd_mode="window"
+                                      )
+        np.savetxt(os.path.join(msd_dir, '{}.txt'.format(atom_type)),
+                   msd_results
+                   )
+    logging.info("Finished MSD Calculations")
+
 
                           
 
