@@ -1,0 +1,5 @@
+workspace/*
+*.out
+signac.rc
+signac_project_document.json
+signac_statepoints.json
