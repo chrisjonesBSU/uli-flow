@@ -202,7 +202,7 @@ def post_process(job):
     if job.sp['procedure'] == 'quench':
         start_index = 0
     elif job.sp['procedure'] == 'anneal': # Only want to sample from last temp
-            start_index = -job.sp['anneal_sequence'][-1] // job.doc['steps_per_log']
+        start_index = -job.sp['anneal_sequence'][-1] // job.doc['steps_per_log']
 
     job_log_file = np.genfromtxt(job.fn('sim_traj.log'),
                                 delimiter='\t',
