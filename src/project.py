@@ -46,17 +46,22 @@ def initialized(job):
 
 @MyProject.label
 def rdf_done(job):
-    if len(os.listdir(os.path.join(job.ws, 'rdf-results'))) > 0:
-        return True
-    else:
+    try:
+        if len(os.listdir(os.path.join(job.ws, 'rdf-results'))) > 0:
+            return True
+        else:
+            return False
+    except:
         return False
-
 
 @MyProject.label
 def msd_done(job):
-    if len(os.listdir(os.path.join(job.ws, 'msd-results'))) > 0:
-        return True
-    else:
+    try:
+        if len(os.listdir(os.path.join(job.ws, 'msd-results'))) > 0:
+            return True
+        else:
+            return False
+    except:
         return False
     
 
@@ -169,9 +174,7 @@ def sample(job):
 @directives()
 @MyProject.operation
 @MyProject.pre(sampled)
-@MyProject.post(rdf_done)
 @MyProject.post(msd_done)
-@MyProject.post(ind_sampling_done)
 def post_process(job):
     '''
     X 1. Independence sampling using .log file
@@ -195,6 +198,7 @@ def post_process(job):
     import matplotlib.pyplot as plt
     
     # Perform independence sampling:
+    print('Starting independent sampling...')
     if job.sp['procedure'] == 'quench':
         start_index = 0
     elif job.sp['procedure'] == 'anneal': # Only want to sample from last temp
@@ -217,10 +221,13 @@ def post_process(job):
                 sampled_data,
                 header = headers.format(*col_names)
               )
-    logging.info("Finished independence sampling...") 
+    print('Finished independent sampling...')
 
     # Calculate some RDFs and MSDs from GSD files and save results to txt files
+    print()
     types = [['ca', 'ca'], ['oh', 'oh']]
+    print('Starting RDF calculations...')
+    print('Types are {}'.format(types))
     rdf_dir = os.path.join(job.ws, 'rdf-results')
     if not os.path.exists(rdf_dir):
         os.mkdir(rdf_dir)
@@ -243,10 +250,12 @@ def post_process(job):
                    header = "x,y", 
                    delimiter=","
                   )
-    logging.info("Finished RDF calculations...")
-
+    print('Finished RDF calculations...')
+    print()
     # Start MSD calculations
     types = ["ca", "oh"]
+    print('Starting MSD calculations...')
+    print('Types are {}'.format(types))
     msd_dir = os.path.join(job.ws, 'msd-results')
     if not os.path.exists(msd_dir):
         os.mkdir(msd_dir)
@@ -267,21 +276,7 @@ def post_process(job):
         np.savetxt(os.path.join(msd_dir, '{}.txt'.format(atom_type)),
                    msd_results
                    )
-    logging.info("Finished MSD Calculations")
-
-
-                          
-
-
-
-
-
-
-
-    
-
-
-                           
+    print('Finished MSD Calculations')
 
 
 
