@@ -232,15 +232,11 @@ def post_process(job):
     if not os.path.exists(rdf_dir):
         os.mkdir(rdf_dir)
     for pair in types:
-        print('FREUD THREADS')
-        print(freud.get_num_threads())
         pair_rdf = rdf.gsd_rdf(job.fn("sim_traj.gsd"),
                                pair[0],
                                pair[1],
                                start=-10
                                )
-        print('FREUD THREADS')
-        print(freud.get_num_threads())
         x = pair_rdf.bin_centers
         y = pair_rdf.rdf
         fig = plt.figure()
@@ -264,16 +260,12 @@ def post_process(job):
     if not os.path.exists(msd_dir):
         os.mkdir(msd_dir)
     for atom_type in types:
-        print('FREUD THREADS')
-        print(freud.get_num_threads())
         msd_results = msd.msd_from_gsd(job.fn("sim_traj.gsd"),
                                        start=-10, stop=-1,
                                        atom_type = atom_type,
                                        msd_mode="window"
                                       )
         
-        print('FREUD THREADS')
-        print(freud.get_num_threads())
         seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * job.doc['steps_per_frame']
         fig = plt.figure()
         plt.plot(seconds, msd_results)
@@ -285,7 +277,6 @@ def post_process(job):
                    msd_results
                    )
     print('Finished MSD Calculations')
-
 
 
 if __name__ == "__main__":
