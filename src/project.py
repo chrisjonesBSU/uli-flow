@@ -266,7 +266,7 @@ def post_process(job):
                                        msd_mode="window"
                                       )
         
-        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * job.doc['steps_per_frame']
+        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * 1e-15 * job.doc['steps_per_frame']
         fig = plt.figure()
         plt.plot(seconds, msd_results)
         plt.title("Mean Square Displacement")
