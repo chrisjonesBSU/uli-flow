@@ -249,7 +249,7 @@ def post_process(job):
         os.mkdir(msd_dir)
     for atom_type in types:
         msd_results = msd.msd_from_gsd(job.fn("sim_traj.gsd"),
-                                       start=-10, stop=-1,
+                                       start=-15, stop=-1,
                                        atom_type = atom_type,
                                        msd_mode="window"
                                       )
