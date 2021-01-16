@@ -130,7 +130,8 @@ def get_parameters():
     parameters["schedule"] = [None]
     return list(parameters.keys()), list(product(*parameters.values()))
 
-
+custom_job_doc = {} # added keys and values to be added to each job document created
+                    # leave blank to create for job doc entries
 def main():
     project = signac.init_project("project")
     param_names, param_combinations = get_parameters()
@@ -148,6 +149,11 @@ def main():
             parent_job.doc.setdefault("sample_pdi", True)
         else:
             parent_job.doc.setdefault("sample_pdi", False)
+    
+    if custom_job_doc:
+        for key in custom_job_doc:
+            parent_job.doc.setdefault(key, custom_job_doc[key])
+
     project.write_statepoints()
 
 if __name__ == "__main__":
