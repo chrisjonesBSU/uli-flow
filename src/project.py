@@ -177,18 +177,6 @@ def sample(job):
 @MyProject.post(msd_done)
 def post_process(job):
     '''
-    X 1. Independence sampling using .log file
-        - Update job doc
-        - Save the sampled data to a new .log file
-    2. Compute average RDF over 10-15 frames
-        - Check a few different atom types
-        - Save results to .csv files
-    3. Compute MSD
-        - Check a few different atom types
-        - Save results to .csv files
-    4. Save some plots (PE, RDF, MSD) in pdf format
-    5. 
-
     '''
     import gsd.hoomd
     import freud
