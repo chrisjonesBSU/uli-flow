@@ -177,18 +177,6 @@ def sample(job):
 @MyProject.post(msd_done)
 def post_process(job):
     '''
-    X 1. Independence sampling using .log file
-        - Update job doc
-        - Save the sampled data to a new .log file
-    2. Compute average RDF over 10-15 frames
-        - Check a few different atom types
-        - Save results to .csv files
-    3. Compute MSD
-        - Check a few different atom types
-        - Save results to .csv files
-    4. Save some plots (PE, RDF, MSD) in pdf format
-    5. 
-
     '''
     import gsd.hoomd
     import freud
@@ -202,7 +190,7 @@ def post_process(job):
     if job.sp['procedure'] == 'quench':
         start_index = 0
     elif job.sp['procedure'] == 'anneal': # Only want to sample from last temp
-            start_index = -job.sp['anneal_sequence'][-1] // job.doc['steps_per_log']
+        start_index = -job.sp['anneal_sequence'][-1] // job.doc['steps_per_log']
 
     job_log_file = np.genfromtxt(job.fn('sim_traj.log'),
                                 delimiter='\t',
@@ -261,12 +249,12 @@ def post_process(job):
         os.mkdir(msd_dir)
     for atom_type in types:
         msd_results = msd.msd_from_gsd(job.fn("sim_traj.gsd"),
-                                       start=-10, stop=-1,
+                                       start=-15, stop=-1,
                                        atom_type = atom_type,
                                        msd_mode="window"
                                       )
         
-        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * job.doc['steps_per_frame']
+        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * 1e-15 * job.doc['steps_per_frame']
         fig = plt.figure()
         plt.plot(seconds, msd_results)
         plt.title("Mean Square Displacement")
@@ -277,7 +265,6 @@ def post_process(job):
                    msd_results
                    )
     print('Finished MSD Calculations')
-
 
 
 if __name__ == "__main__":
