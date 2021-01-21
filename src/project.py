@@ -190,7 +190,7 @@ def post_process(job):
     if job.sp['procedure'] == 'quench':
         start_index = 0
     elif job.sp['procedure'] == 'anneal': # Only want to sample from last temp
-        start_index = -job.sp['anneal_sequence'][-1] // job.doc['steps_per_log']
+        start_index = int(-job.sp['anneal_sequence'][-1] // job.doc['steps_per_log'])
 
     job_log_file = np.genfromtxt(job.fn('sim_traj.log'),
                                 delimiter='\t',
@@ -213,7 +213,7 @@ def post_process(job):
 
     # Calculate some RDFs and MSDs from GSD files and save results to txt files
     print()
-    types = [['ca', 'ca'], ['oh', 'oh']]
+    types = [['ca', 'ca'], ['o', 'o']]
     print('Starting RDF calculations...')
     print('Types are {}'.format(types))
     rdf_dir = os.path.join(job.ws, 'rdf-results')
@@ -241,7 +241,7 @@ def post_process(job):
     print('Finished RDF calculations...')
     print()
     # Start MSD calculations
-    types = ["ca", "oh"]
+    types = ["ca", "o"]
     print('Starting MSD calculations...')
     print('Types are {}'.format(types))
     msd_dir = os.path.join(job.ws, 'msd-results')
