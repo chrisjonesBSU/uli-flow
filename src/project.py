@@ -202,7 +202,7 @@ def post_process(job):
     job.doc['production_ineff'] = samples.ineff # Statistical inefficiency of prod region
     job.doc['production_size'] = samples.production_size # Size of prod region
     job.doc['num_ind_samples'] = len(samples.indices)
-    sampled_data = job_log_file[samples.start:][samples.indices]
+    sampled_data = job_log_file[start_index:][samples.start:][samples.indices]
     col_names = [name for name in job_log_file.dtype.names]
     headers = "{}\t"*(len(col_names) - 1)+"{}"
     np.savetxt(job.fn('sim_traj_equil.log'),
