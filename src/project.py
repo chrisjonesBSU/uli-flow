@@ -186,7 +186,7 @@ def post_process(job):
     import matplotlib.pyplot as plt
     
     # Perform independence sampling:
-    print('Starting independent sampling...')
+    logging.info('Starting independent sampling...')
     if job.sp['procedure'] == 'quench':
         start_index = 0
     elif job.sp['procedure'] == 'anneal': # Only want to sample from last temp
@@ -209,13 +209,12 @@ def post_process(job):
                 sampled_data,
                 header = headers.format(*col_names)
               )
-    print('Finished independent sampling...')
+    logging.info('Finished independent sampling...')
 
     # Calculate some RDFs and MSDs from GSD files and save results to txt files
-    print()
     types = [['ca', 'ca'], ['o', 'o']]
-    print('Starting RDF calculations...')
-    print('Types are {}'.format(types))
+    logging.info('Starting RDF calculations...')
+    logging.info('Types are {}'.format(types))
     rdf_dir = os.path.join(job.ws, 'rdf-results')
     if not os.path.exists(rdf_dir):
         os.mkdir(rdf_dir)
@@ -238,12 +237,12 @@ def post_process(job):
                    header = "x,y", 
                    delimiter=","
                   )
-    print('Finished RDF calculations...')
-    print()
+    logging.info('Finished RDF calculations...')
+
     # Start MSD calculations
     types = ["ca", "o"]
-    print('Starting MSD calculations...')
-    print('Types are {}'.format(types))
+    logging.info('Starting MSD calculations...')
+    logging.info('Types are {}'.format(types))
     msd_dir = os.path.join(job.ws, 'msd-results')
     if not os.path.exists(msd_dir):
         os.mkdir(msd_dir)
@@ -254,7 +253,8 @@ def post_process(job):
                                        msd_mode="window"
                                       )
         
-        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * 1e-15 * job.doc['steps_per_frame']
+        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep']
+                                * 1e-15 * job.doc['steps_per_frame']
         fig = plt.figure()
         plt.plot(seconds, msd_results)
         plt.title("Mean Square Displacement")
@@ -264,7 +264,7 @@ def post_process(job):
         np.savetxt(os.path.join(msd_dir, '{}.txt'.format(atom_type)),
                    msd_results
                    )
-    print('Finished MSD Calculations')
+    logging.info('Finished MSD Calculations')
 
 
 if __name__ == "__main__":

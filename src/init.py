@@ -72,7 +72,6 @@ def get_parameters():
 
     If you want to sample from a PDI:
         Change the polymer length lines to [None]
-        Change the n_compounds lines to [None]
 
     If you only want to run a quench simulation
         Comment out kT_anneal, anneal_sequence lines
@@ -85,22 +84,22 @@ def get_parameters():
     '''
 
     parameters = OrderedDict()
-    # System generation parameters:
+   
+    #### System generation parameters: ####
     parameters["molecule"] = ['PEEK',
                              #'PEKK'
                              ]
     parameters["para_weight"] = [0.70]
     parameters["density"] = [0.9]
-    #parameters["n_compounds"] = [None]
     parameters["n_compounds"] = [
                                  [5, 5, 5], # List of lists 
                                  #[100, 150, 80], 
                                  #[200, 300, 160]
                                 ]
-    #parameters["polymer_lengths"] = [None]
+    #parameters["polymer_lengths"] = [None] #Uncomment this line if sampling from PDI.
     parameters["polymer_lengths"] = [
-                                     [5, 10, 15] # List of lists
-                                    ]   # Must match length of n_compound lists
+                                     [5, 10, 15] # List of lists; comment out if using PDI.
+                                    ]            # Must match length of n_compound lists
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -109,7 +108,7 @@ def get_parameters():
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
 
-    # Simulation parameters
+    #### Simulation parameters: ####
     parameters["tau"] = [0.1]
     parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
@@ -117,10 +116,12 @@ def get_parameters():
     parameters["procedure"] = [#"quench",
                               "anneal"
                               ]
-        # Quench related params:
+
+      #### Quench related params: ####
     #parameters["kT_quench"] = [1.5] # Reduced Temp
     #parameters["n_steps"] = [1e7]
-        # Anneal related params
+
+      #### Anneal related params: ####
     parameters["kT_anneal"] = [
                                [6.0, 2.0]
                               ] # List of [initial kT, final kT] Reduced Temps
@@ -130,7 +131,7 @@ def get_parameters():
     parameters["schedule"] = [None]
     return list(parameters.keys()), list(product(*parameters.values()))
 
-custom_job_doc = {} # added keys and values to be added to each job document created
+custom_job_doc = {} # Additional keys and values to be added to each job document created
                     # leave blank to create for job doc entries
 def main():
     project = signac.init_project("project")
