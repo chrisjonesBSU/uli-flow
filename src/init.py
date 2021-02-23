@@ -114,6 +114,7 @@ def get_parameters():
     parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
+    parameters["walls"] = [True]
     parameters["procedure"] = [#"quench",
                               "anneal"
                               ]
