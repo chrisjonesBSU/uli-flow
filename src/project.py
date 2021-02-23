@@ -147,7 +147,7 @@ def sample(job):
                     kT = job.sp['kT_quench'],
                     n_steps = job.sp['n_steps'],
                     shrink_kT = 10,
-                    shrink_steps = 1e7,
+                    shrink_steps = 5e6,
                     walls = job.sp['walls'],
                     shrink_period = 10
                     )
@@ -170,7 +170,7 @@ def sample(job):
                     step_sequence = job.sp['anneal_sequence'],
                     schedule = job.sp['schedule'],
                     shrink_kT = 10,
-                    shrink_steps = 1e7,
+                    shrink_steps = 5e6,
                     walls = job.sp['walls'],
                     shrink_period = 10
                     )
