@@ -149,7 +149,7 @@ def sample(job):
                     shrink_kT = 10,
                     shrink_steps = 5e6,
                     walls = job.sp['walls'],
-                    shrink_period = 10
+                    shrink_period = 500
                     )
 
         elif job.sp['procedure'] == "anneal":
@@ -172,7 +172,7 @@ def sample(job):
                     shrink_kT = 10,
                     shrink_steps = 5e6,
                     walls = job.sp['walls'],
-                    shrink_period = 10
+                    shrink_period = 500 
                     )
 
 @directives()
