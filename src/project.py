@@ -82,7 +82,7 @@ def sample(job):
 
     with job:
         logging.info("Creating system...")
-        if job.doc["sim_type"] == "melt":
+        if job.doc["sim_type"] == "melt": # Bulk melt systems
             system = simulate.System(
                     molecule = job.sp['molecule'],
                     para_weight = job.sp['para_weight'],
@@ -103,7 +103,7 @@ def sample(job):
             job.doc['num_compounds'] = system.n_compounds
             job.doc['polymer_lengths'] = system.polymer_lengths
 
-        elif job.doc["sim_type"] == "interface":
+        elif job.doc["sim_type"] == "interface": # Interface system
             slab_files = []
             ref_distances = []
             if job.sp['use_signac']:
@@ -127,17 +127,20 @@ def sample(job):
                         job = project.open_job(id=arg)
                         slab_files.append(job.fn('restart.gsd'))
                         ref_distances.append(job.doc['ref_distance'])
-            elif not job.sp['use_signac']:
+            elif not job.sp['use_signac']: # Using a specified path to the .gsd file(s)
                 slab_files.append(job.sp['slab_file'])
                 ref_distances.append(job.sp['reference_distance'])
 
+            if len(ref_distances) == 2: #TODO --> Better handling of multiple ref distances
+                assert ref_distances[0] == ref_distances[1]
+            
             system = simulate.Interface(slabs = slab_files,
-                                        ref_distance = ref_distance,
+                                        ref_distance = ref_distance[0],
                                         gap = job.sp['gap'],
                                         forcefield = job.sp['forcefield'],
                                         )
 
-            job.doc['slab_ref_distances'] = system.ref_distances
+            job.doc['slab_ref_distances'] = system.ref_distance
 
         system.system_pmd.save('init.pdb', overwrite=True)
         logging.info("System generated...")
