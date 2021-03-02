@@ -86,22 +86,20 @@ def get_parameters():
     '''
 
     parameters = OrderedDict()
-    
-
-    ########################################################
     # System generation parameters:
-    parameters["signac_dict"] = [[{},
-                                  {}] # Signac statepoint dict(s)
-                                  ] 
-    parameters["signac_job"] = [[] # Specific signac job ID(s)
-                                ] 
-    parameters["slab_file"] = [[]  # Full path to .gsd file(s)
+    parameters["signac_project"] = [None] # Path to projec that contains slabs.
+                                          # Leave as None if they are in this current project
+    parameters["signac_args"] = [[None] # A way for signac to find the slab .gsd file(s) 
+                                ]   # Can be a job ID or a dictionary of state points
+    
+    parameters["slab_file"] = [[None]  # Full path to .gsd file(s)
                                 ] 
 
-    parameters["forcefield"] = ['gaff']
+    parameters["interface_gap"] = [0.1]
+    parameters["reference_distance"] = [None]
+    parameters["forcefield"] = ['gaff'] 
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
-
     # Simulation parameters
     parameters["tau"] = [0.1]
     parameters["dt"] = [0.001]
@@ -124,7 +122,7 @@ def get_parameters():
     parameters["schedule"] = [None]
     return list(parameters.keys()), list(product(*parameters.values()))
 
-custom_job_doc = {} # added keys and values to be added to each job document created
+custom_job_doc = {} # keys and values to be added to each job document created
                     # leave blank to create for job doc entries
 def main():
     project = signac.init_project("project")
@@ -134,15 +132,18 @@ def main():
         parent_statepoint = dict(zip(param_names, params))
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
+        parent_job.doc.setdefault("sim_type", "interface")
         try:
             parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
         except:
             parent_job.doc.setdefault("steps", np.sum(parent_statepoint["anneal_sequence"]))
             parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
-        if any([parent_job.sp['Mn'], parent_job.sp['pdi'], parent_job.sp['Mw']]):
-            parent_job.doc.setdefault("sample_pdi", True)
-        else:
-            parent_job.doc.setdefault("sample_pdi", False)
+        if parent_job.sp['signac_args']:
+            parent_job.doc.setdefault("use_signac", True)
+            parent_job.doc.setdefault("slab_files", job.sp['signac_args'])
+        elif parent_job.sp['slab_file']:
+            parent_job.doc.setdefault("use_signac", False)
+            parent_job.doc.setdefault("slab_files", job.sp['slab_file'])
     
     if custom_job_doc:
         for key in custom_job_doc:

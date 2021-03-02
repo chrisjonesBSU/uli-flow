@@ -82,32 +82,38 @@ def sample(job):
 
     with job:
         logging.info("Creating system...")
-        system = simulate.System(
-                molecule = job.sp['molecule'],
-                para_weight = job.sp['para_weight'],
-                density = job.sp['density'],
-                n_compounds = job.sp['n_compounds'],
-                polymer_lengths = job.sp['polymer_lengths'],
-                forcefield = job.sp['forcefield'],
-                sample_pdi = job.doc.sample_pdi,
-                pdi = job.sp['pdi'],
-                Mn = job.sp['Mn'],
-                Mw = job.sp['Mw'],
-                mass_dist_type = job.sp['mass_dist'],
-                remove_hydrogens = job.sp['remove_hydrogens'],
-                seed = job.sp['system_seed']
-            )
+        if job.doc["sim_type"] == "melt":
+            system = simulate.System(
+                    molecule = job.sp['molecule'],
+                    para_weight = job.sp['para_weight'],
+                    density = job.sp['density'],
+                    n_compounds = job.sp['n_compounds'],
+                    polymer_lengths = job.sp['polymer_lengths'],
+                    forcefield = job.sp['forcefield'],
+                    sample_pdi = job.doc.sample_pdi,
+                    pdi = job.sp['pdi'],
+                    Mn = job.sp['Mn'],
+                    Mw = job.sp['Mw'],
+                    mass_dist_type = job.sp['mass_dist'],
+                    remove_hydrogens = job.sp['remove_hydrogens'],
+                    seed = job.sp['system_seed']
+                )
+            job.doc['num_para'] = system.para
+            job.doc['num_meta'] = system.meta
+            job.doc['num_compounds'] = system.n_compounds
+            job.doc['polymer_lengths'] = system.polymer_lengths
 
-        if system.system_pmd:
-            system.system_pmd.save('init.pdb', overwrite=True)
-        else:
-            system.system_mb.save('init.pdb', overwrite=True)
+        elif job.doc["sim_type"] == "interface":
+            system = simulate.Interface(slabs = job.doc['slab_files'],
+                                        ref_distance = job.sp['reference_distance'],
+                                        gap = job.sp['gap'],
+                                        forcefield = job.sp['forcefield'],
+                                        use_signac = job.doc['use_signac'],
+                                        signac_project = job.sp['signac_project'])
 
-        job.doc['num_para'] = system.para
-        job.doc['num_meta'] = system.meta
-        job.doc['num_compounds'] = system.n_compounds
-        job.doc['polymer_lengths'] = system.polymer_lengths
+            job.doc['ref_distances'] = system.ref_distances
 
+        system.system_pmd.save('init.pdb', overwrite=True)
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
