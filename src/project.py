@@ -104,14 +104,40 @@ def sample(job):
             job.doc['polymer_lengths'] = system.polymer_lengths
 
         elif job.doc["sim_type"] == "interface":
-            system = simulate.Interface(slabs = job.doc['slab_files'],
-                                        ref_distance = job.sp['reference_distance'],
+            slab_files = []
+            ref_distances = []
+            if job.sp['use_signac']:
+                signac_args = []
+                if isinstance(job.sp['signac_args'], list):
+                    slab_1_arg = job.sp['signac_args'][0]
+                    signac_args.append(slab_1_arg)
+                    if len(job.sp['signac_args']) == 2:
+                        slab_2_arg = job.sp['signac_args'][1]
+                        signac_args.append(slab_2_args)
+                elif not isinstance(job.sp['signac_args'], list):
+                    signac_args.append(job.sp['signac_args'])
+
+                project = signac.get_project(root=job.sp['signac_project'], search=False)
+                for arg in signac_args:
+                    if isinstance(arg, dict): # Find job using state point dict
+                        job = project.open_job(statepoint=arg)
+                        slab_files.append(job.fn('restart.gsd'))
+                        ref_distances.append(job.doc['ref_distance'])
+                    elif isinstance(arg, str): # Find job using job ID
+                        job = project.open_job(id=arg)
+                        slab_files.append(job.fn('restart.gsd'))
+                        ref_distances.append(job.doc['ref_distance'])
+            elif not job.sp['use_signac']:
+                slab_files.append(job.sp['slab_file'])
+                ref_distances.append(job.sp['reference_distance'])
+
+            system = simulate.Interface(slabs = slab_files,
+                                        ref_distance = ref_distance,
                                         gap = job.sp['gap'],
                                         forcefield = job.sp['forcefield'],
-                                        use_signac = job.doc['use_signac'],
-                                        signac_project = job.sp['signac_project'])
+                                        )
 
-            job.doc['ref_distances'] = system.ref_distances
+            job.doc['slab_ref_distances'] = system.ref_distances
 
         system.system_pmd.save('init.pdb', overwrite=True)
         logging.info("System generated...")
