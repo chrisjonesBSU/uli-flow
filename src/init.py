@@ -60,6 +60,11 @@ def get_parameters():
     mass_dist : str
         Specify the distribution to be used when sampling from a pdi
         Options are: 'weibull' or 'gaussian'
+    walls : bool
+        If set to True, then hoomd will set LJ wall potentials on both
+        sides of the volume along the x-axis.
+        This should be True if you want to produce a trajectory with a flat
+        surface.
 
     Simulation parameters:
     ----------------------
