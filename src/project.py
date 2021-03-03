@@ -122,11 +122,11 @@ def sample(job):
                     if isinstance(arg, dict): # Find job using state point dict
                         melt_job = project.open_job(statepoint=arg)
                         slab_files.append(melt_job.fn('restart.gsd'))
-                        ref_distances.append(melt_job.doc['ref_distance'])
+                        ref_distances.append(melt_job.doc['ref_distance']/10)
                     elif isinstance(arg, str): # Find job using job ID
                         melt_job = project.open_job(id=arg)
                         slab_files.append(melt_job.fn('restart.gsd'))
-                        ref_distances.append(melt_job.doc['ref_distance'])
+                        ref_distances.append(melt_job.doc['ref_distance']/10)
             elif not job.sp['use_signac']: # Using a specified path to the .gsd file(s)
                 slab_files.append(job.sp['slab_file'])
                 ref_distances.append(job.sp['reference_distance'])
@@ -135,7 +135,7 @@ def sample(job):
                 assert ref_distances[0] == ref_distances[1]
             
             system = simulate.Interface(slabs = slab_files,
-                                        ref_distance = ref_distance[0],
+                                        ref_distance = ref_distances[0],
                                         gap = job.sp['gap'],
                                         forcefield = job.sp['forcefield'],
                                         )
