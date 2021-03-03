@@ -5,6 +5,7 @@ status, execute operations and submit them to a cluster. See also:
 
     $ python src/project.py --help
 """
+import signac
 from flow import FlowProject, directives
 from flow.environment import DefaultSlurmEnvironment
 from flow.environments.xsede import BridgesEnvironment, CometEnvironment
@@ -106,7 +107,7 @@ def sample(job):
         elif job.doc["sim_type"] == "interface": # Interface system
             slab_files = []
             ref_distances = []
-            if job.sp['use_signac']:
+            if job.doc['use_signac']:
                 signac_args = []
                 if isinstance(job.sp['signac_args'], list):
                     slab_1_arg = job.sp['signac_args'][0]
@@ -120,14 +121,14 @@ def sample(job):
                 project = signac.get_project(root=job.sp['signac_project'], search=True)
                 for arg in signac_args:
                     if isinstance(arg, dict): # Find job using state point dict
-                        melt_job = project.open_job(statepoint=arg)
-                        slab_files.append(melt_job.fn('restart.gsd'))
-                        ref_distances.append(melt_job.doc['ref_distance']/10)
+                        _job = project.open_job(statepoint=arg)
+                        slab_files.append(_job.fn('restart.gsd'))
+                        ref_distances.append(_job.doc['ref_distance']/10)
                     elif isinstance(arg, str): # Find job using job ID
-                        melt_job = project.open_job(id=arg)
-                        slab_files.append(melt_job.fn('restart.gsd'))
-                        ref_distances.append(melt_job.doc['ref_distance']/10)
-            elif not job.sp['use_signac']: # Using a specified path to the .gsd file(s)
+                        _job = project.open_job(id=arg)
+                        slab_files.append(_job.fn('restart.gsd'))
+                        ref_distances.append(_job.doc['ref_distance']/10)
+            elif not job.doc['use_signac']: # Using a specified path to the .gsd file(s)
                 slab_files.append(job.sp['slab_file'])
                 ref_distances.append(job.sp['reference_distance'])
 
@@ -136,7 +137,7 @@ def sample(job):
             
             system = simulate.Interface(slabs = slab_files,
                                         ref_distance = ref_distances[0],
-                                        gap = job.sp['gap'],
+                                        gap = job.sp['interface_gap'],
                                         forcefield = job.sp['forcefield'],
                                         )
 
