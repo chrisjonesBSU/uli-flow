@@ -123,8 +123,8 @@ def sample(job):
 
                 project = signac.get_project(root=job.sp['signac_project'], search=True)
                 for arg in signac_args:
-                    if isinstance(arg, dict): # Find job using state point dict
-                        _job = project.open_job(statepoint=arg)
+                    if isinstance(arg, signac.core.attrdict.SyncedAttrDict): 
+                        _job = list(project.find_jobs(filter=arg))[0]
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
                     elif isinstance(arg, str): # Find job using job ID
@@ -137,7 +137,7 @@ def sample(job):
 
             if len(ref_distances) == 2: #TODO --> Better handling of multiple ref distances
                 assert ref_distances[0] == ref_distances[1]
-            
+
             system = simulate.Interface(slabs = slab_files,
                                         ref_distance = ref_distances[0],
                                         gap = job.sp['interface_gap'],
