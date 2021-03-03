@@ -99,6 +99,9 @@ def sample(job):
                     remove_hydrogens = job.sp['remove_hydrogens'],
                     seed = job.sp['system_seed']
                 )
+            shrink_kT = 10
+            shrink_steps = 5e6
+            shrink_period = 500
             job.doc['num_para'] = system.para
             job.doc['num_meta'] = system.meta
             job.doc['num_compounds'] = system.n_compounds
@@ -142,6 +145,9 @@ def sample(job):
                                         )
 
             job.doc['slab_ref_distances'] = system.ref_distance
+            shrink_kT = None 
+            shrink_steps = None
+            shrink_period = None
 
         system.system_pmd.save('init.pdb', overwrite=True)
         logging.info("System generated...")
@@ -182,10 +188,10 @@ def sample(job):
             simulation.quench(
                     kT = job.sp['kT_quench'],
                     n_steps = job.sp['n_steps'],
-                    shrink_kT = 10,
-                    shrink_steps = 5e6,
+                    shrink_kT = shrink_kT,
+                    shrink_steps = shrink_steps,
                     walls = job.sp['walls'],
-                    shrink_period = 500
+                    shrink_period = shrink_period
                     )
 
         elif job.sp['procedure'] == "anneal":
@@ -205,10 +211,10 @@ def sample(job):
                     kT_final = job.sp['kT_anneal'][1],
                     step_sequence = job.sp['anneal_sequence'],
                     schedule = job.sp['schedule'],
-                    shrink_kT = 10,
-                    shrink_steps = 5e6,
+                    shrink_kT = shrink_kT,
+                    shrink_steps = shrink_steps,
                     walls = job.sp['walls'],
-                    shrink_period = 500 
+                    shrink_period = shrink_period 
                     )
 
 @directives()
