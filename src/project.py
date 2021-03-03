@@ -117,16 +117,16 @@ def sample(job):
                 elif not isinstance(job.sp['signac_args'], list):
                     signac_args.append(job.sp['signac_args'])
 
-                project = signac.get_project(root=job.sp['signac_project'], search=False)
+                project = signac.get_project(root=job.sp['signac_project'], search=True)
                 for arg in signac_args:
                     if isinstance(arg, dict): # Find job using state point dict
-                        job = project.open_job(statepoint=arg)
-                        slab_files.append(job.fn('restart.gsd'))
-                        ref_distances.append(job.doc['ref_distance'])
+                        melt_job = project.open_job(statepoint=arg)
+                        slab_files.append(melt_job.fn('restart.gsd'))
+                        ref_distances.append(melt_job.doc['ref_distance'])
                     elif isinstance(arg, str): # Find job using job ID
-                        job = project.open_job(id=arg)
-                        slab_files.append(job.fn('restart.gsd'))
-                        ref_distances.append(job.doc['ref_distance'])
+                        melt_job = project.open_job(id=arg)
+                        slab_files.append(melt_job.fn('restart.gsd'))
+                        ref_distances.append(melt_job.doc['ref_distance'])
             elif not job.sp['use_signac']: # Using a specified path to the .gsd file(s)
                 slab_files.append(job.sp['slab_file'])
                 ref_distances.append(job.sp['reference_distance'])
