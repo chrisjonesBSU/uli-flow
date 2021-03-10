@@ -5,6 +5,7 @@ status, execute operations and submit them to a cluster. See also:
 
     $ python src/project.py --help
 """
+import signac
 from flow import FlowProject, directives
 from flow.environment import DefaultSlurmEnvironment
 from flow.environments.xsede import BridgesEnvironment, CometEnvironment
@@ -82,32 +83,73 @@ def sample(job):
 
     with job:
         logging.info("Creating system...")
-        system = simulate.System(
-                molecule = job.sp['molecule'],
-                para_weight = job.sp['para_weight'],
-                density = job.sp['density'],
-                n_compounds = job.sp['n_compounds'],
-                polymer_lengths = job.sp['polymer_lengths'],
-                forcefield = job.sp['forcefield'],
-                sample_pdi = job.doc.sample_pdi,
-                pdi = job.sp['pdi'],
-                Mn = job.sp['Mn'],
-                Mw = job.sp['Mw'],
-                mass_dist_type = job.sp['mass_dist'],
-                remove_hydrogens = job.sp['remove_hydrogens'],
-                seed = job.sp['system_seed']
-            )
+        if job.doc["sim_type"] == "melt": # Bulk melt systems
+            system = simulate.System(
+                    molecule = job.sp['molecule'],
+                    para_weight = job.sp['para_weight'],
+                    density = job.sp['density'],
+                    n_compounds = job.sp['n_compounds'],
+                    polymer_lengths = job.sp['polymer_lengths'],
+                    forcefield = job.sp['forcefield'],
+                    sample_pdi = job.doc.sample_pdi,
+                    pdi = job.sp['pdi'],
+                    Mn = job.sp['Mn'],
+                    Mw = job.sp['Mw'],
+                    mass_dist_type = job.sp['mass_dist'],
+                    remove_hydrogens = job.sp['remove_hydrogens'],
+                    seed = job.sp['system_seed']
+                )
+            shrink_kT = 10
+            shrink_steps = 5e6
+            shrink_period = 500
+            job.doc['num_para'] = system.para
+            job.doc['num_meta'] = system.meta
+            job.doc['num_compounds'] = system.n_compounds
+            job.doc['polymer_lengths'] = system.polymer_lengths
 
-        if system.system_pmd:
-            system.system_pmd.save('init.pdb', overwrite=True)
-        else:
-            system.system_mb.save('init.pdb', overwrite=True)
+        elif job.doc["sim_type"] == "interface": # Interface system
+            slab_files = []
+            ref_distances = []
+            if job.doc['use_signac']:
+                signac_args = []
+                if isinstance(job.sp['signac_args'], list):
+                    slab_1_arg = job.sp['signac_args'][0]
+                    signac_args.append(slab_1_arg)
+                    if len(job.sp['signac_args']) == 2:
+                        slab_2_arg = job.sp['signac_args'][1]
+                        signac_args.append(slab_2_args)
+                elif not isinstance(job.sp['signac_args'], list):
+                    signac_args.append(job.sp['signac_args'])
 
-        job.doc['num_para'] = system.para
-        job.doc['num_meta'] = system.meta
-        job.doc['num_compounds'] = system.n_compounds
-        job.doc['polymer_lengths'] = system.polymer_lengths
+                project = signac.get_project(root=job.sp['signac_project'], search=True)
+                for arg in signac_args:
+                    if isinstance(arg, signac.core.attrdict.SyncedAttrDict): 
+                        _job = list(project.find_jobs(filter=arg))[0]
+                        slab_files.append(_job.fn('restart.gsd'))
+                        ref_distances.append(_job.doc['ref_distance']/10)
+                    elif isinstance(arg, str): # Find job using job ID
+                        _job = project.open_job(id=arg)
+                        slab_files.append(_job.fn('restart.gsd'))
+                        ref_distances.append(_job.doc['ref_distance']/10)
+            elif not job.doc['use_signac']: # Using a specified path to the .gsd file(s)
+                slab_files.append(job.sp['slab_file'])
+                ref_distances.append(job.sp['reference_distance'])
 
+            if len(ref_distances) == 2: #TODO --> Better handling of multiple ref distances
+                assert ref_distances[0] == ref_distances[1]
+
+            system = simulate.Interface(slabs = slab_files,
+                                        ref_distance = ref_distances[0],
+                                        gap = job.sp['interface_gap'],
+                                        forcefield = job.sp['forcefield'],
+                                        )
+
+            job.doc['slab_ref_distances'] = system.ref_distance
+            shrink_kT = None 
+            shrink_steps = None
+            shrink_period = None
+
+        system.system_pmd.save('init.pdb', overwrite=True)
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
@@ -146,10 +188,10 @@ def sample(job):
             simulation.quench(
                     kT = job.sp['kT_quench'],
                     n_steps = job.sp['n_steps'],
-                    shrink_kT = 10,
-                    shrink_steps = 5e6,
+                    shrink_kT = shrink_kT,
+                    shrink_steps = shrink_steps,
                     walls = job.sp['walls'],
-                    shrink_period = 500
+                    shrink_period = shrink_period
                     )
 
         elif job.sp['procedure'] == "anneal":
@@ -169,10 +211,10 @@ def sample(job):
                     kT_final = job.sp['kT_anneal'][1],
                     step_sequence = job.sp['anneal_sequence'],
                     schedule = job.sp['schedule'],
-                    shrink_kT = 10,
-                    shrink_steps = 5e6,
+                    shrink_kT = shrink_kT,
+                    shrink_steps = shrink_steps,
                     walls = job.sp['walls'],
-                    shrink_period = 500 
+                    shrink_period = shrink_period 
                     )
 
 @directives()
