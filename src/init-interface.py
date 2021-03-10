@@ -140,10 +140,10 @@ def main():
             parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
         if parent_job.sp['signac_args']:
             parent_job.doc.setdefault("use_signac", True)
-            parent_job.doc.setdefault("slab_files", job.sp['signac_args'])
+            parent_job.doc.setdefault("slab_files", parent_job.sp['signac_args'])
         elif parent_job.sp['slab_file']:
             parent_job.doc.setdefault("use_signac", False)
-            parent_job.doc.setdefault("slab_files", job.sp['slab_file'])
+            parent_job.doc.setdefault("slab_files", parent_job.sp['slab_file'])
     
     if custom_job_doc:
         for key in custom_job_doc:
