@@ -95,17 +95,17 @@ def get_parameters():
                              #'PEKK'
                              ]
     parameters["para_weight"] = [0.70]
+
+    parameters["monomer_sequence"] = ["PM"]
     parameters["density"] = [0.9]
-    #parameters["n_compounds"] = [None]
     parameters["n_compounds"] = [
-                                 [5, 5, 5], # List of lists 
-                                 #[100, 150, 80], 
-                                 #[200, 300, 160]
-                                ]
+            [5, 5, 5], 
+        ]
+
     #parameters["polymer_lengths"] = [None]
     parameters["polymer_lengths"] = [
-                                     [5, 10, 15] # List of lists
-                                    ]   # Must match length of n_compound lists
+            [5, 10, 15],
+        ]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -120,19 +120,25 @@ def get_parameters():
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["walls"] = [True]
-    parameters["procedure"] = [#"quench",
-                              "anneal"
-                              ]
-        # Quench related params:
-    #parameters["kT_quench"] = [1.5] # Reduced Temp
+    parameters["procedure"] = [
+            #"quench",
+            "anneal"
+        ]
+
+    ### Quench related parameters ###
+    #parameters["kT_quench"] = [1.5]
     #parameters["n_steps"] = [1e7]
-        # Anneal related params
+
+    ### Anneal related parameters ###
+    # List of [initial kT, final kT] Reduced Temps
     parameters["kT_anneal"] = [
-                               [6.0, 2.0]
-                              ] # List of [initial kT, final kT] Reduced Temps
+            [6.0, 2.0]
+        ]     
+    # List of lists of number of steps 
     parameters["anneal_sequence"] = [
-                                     [2e5, 1e5, 3e5, 5e5, 5e5, 1e5] # List of lists (n_steps)
-                                    ]
+            [2e5, 1e5, 3e5, 5e5, 5e5, 1e5]
+        ]
+
     parameters["schedule"] = [None]
     return list(parameters.keys()), list(product(*parameters.values()))
 

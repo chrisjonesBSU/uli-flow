@@ -87,6 +87,7 @@ def sample(job):
             system = simulate.System(
                     molecule = job.sp['molecule'],
                     para_weight = job.sp['para_weight'],
+                    monomer_sequence = job.sp['monomer_sequence'],
                     density = job.sp['density'],
                     n_compounds = job.sp['n_compounds'],
                     polymer_lengths = job.sp['polymer_lengths'],
