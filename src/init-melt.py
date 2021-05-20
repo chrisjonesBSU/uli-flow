@@ -90,13 +90,13 @@ def get_parameters():
     '''
 
     parameters = OrderedDict()
-    # System generation parameters:
+    ### System generation parameters ###
     parameters["molecule"] = ['PEEK',
                              #'PEKK'
                              ]
     parameters["para_weight"] = [0.70]
 
-    parameters["monomer_sequence"] = ["PM"]
+    #parameters["monomer_sequence"] = ["PM"]
     parameters["density"] = [0.9]
     parameters["n_compounds"] = [
             [5, 5, 5], 
@@ -114,32 +114,43 @@ def get_parameters():
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
 
-    # Simulation parameters
+    ### Simulation parameters ###
     parameters["tau"] = [0.1]
     parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["walls"] = [True]
     parameters["procedure"] = [
-            #"quench",
-            "anneal"
+            "quench",
+            #"anneal"
         ]
 
     ### Quench related parameters ###
-    #parameters["kT_quench"] = [1.5]
-    #parameters["n_steps"] = [1e7]
+    parameters["kT_quench"] = [1.5]
+    parameters["n_steps"] = [1e7]
 
     ### Anneal related parameters ###
     # List of [initial kT, final kT] Reduced Temps
-    parameters["kT_anneal"] = [
-            [6.0, 2.0]
-        ]     
+    #parameters["kT_anneal"] = [
+    #        [6.0, 2.0]
+    #    ]     
     # List of lists of number of steps 
-    parameters["anneal_sequence"] = [
-            [2e5, 1e5, 3e5, 5e5, 5e5, 1e5]
-        ]
+    #parameters["anneal_sequence"] = [
+    #        [2e5, 1e5, 3e5, 5e5, 5e5, 1e5]
+    #    ]
+    #parameters["schedule"] = [None]
 
-    parameters["schedule"] = [None]
+    ### Do a few checks to save headaches later:
+    try:
+        parameters['para_weight']
+        parameters['monomer_sequence']
+        raise ValueError(
+                "You can only use one of `para_weight` and "
+                "`monomer_sequence`. Comment one of these lines out."
+                )
+    except KeyError:
+        pass
+
     return list(parameters.keys()), list(product(*parameters.values()))
 
 custom_job_doc = {} # added keys and values to be added to each job document created
