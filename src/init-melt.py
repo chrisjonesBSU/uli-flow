@@ -91,6 +91,11 @@ def get_parameters():
 
     parameters = OrderedDict()
     ### System generation parameters ###
+    parameters["system_type"] = ["melt",
+            #"dilute",
+            #"lamellar",
+            #"coarse_grain",
+            ]
     parameters["molecule"] = ['PEEK',
                              #'PEKK'
                              ]
@@ -163,7 +168,6 @@ def main():
         parent_statepoint = dict(zip(param_names, params))
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
-        parent_job.doc.setdefault("sim_type", "melt")
         try:
             parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
         except:

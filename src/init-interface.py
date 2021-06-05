@@ -92,9 +92,7 @@ def get_parameters():
     parameters["signac_args"] = [[None] # A way for signac to find the slab .gsd file(s) 
                                 ]   # Can be a job ID or a dictionary of state points
     
-    parameters["slab_file"] = [[None]  # Full path to .gsd file(s)
-                                ] 
-
+    parameters["slab_file"] = [[None]]  # Full path to .gsd file(s)
     parameters["interface_gap"] = [0.1]
     parameters["reference_distance"] = [None]
     parameters["forcefield"] = ['gaff'] 
@@ -106,12 +104,15 @@ def get_parameters():
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["walls"] = [True]
+    parameters["system_type"] = ["interface"] # Don't change this
     parameters["procedure"] = [#"quench",
                               "anneal"
                               ]
+
         # Quench related params:
     #parameters["kT_quench"] = [1.5] # Reduced Temp
     #parameters["n_steps"] = [1e7]
+
         # Anneal related params
     parameters["kT_anneal"] = [
                                [6.0, 2.0]
@@ -132,7 +133,6 @@ def main():
         parent_statepoint = dict(zip(param_names, params))
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
-        parent_job.doc.setdefault("sim_type", "interface")
         try:
             parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
         except:

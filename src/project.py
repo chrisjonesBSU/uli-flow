@@ -42,7 +42,7 @@ def sampled(job):
 
 @MyProject.label
 def initialized(job):
-    return job.isfile("init.pdb")
+    return job.isfile("init.mol2")
 
 
 @MyProject.label
@@ -76,21 +76,22 @@ def ind_sampling_done(job):
 @MyProject.operation
 @MyProject.post(sampled)
 def sample(job):
-    from uli_init import simulate
+    from uli_init import simulate, systems
     from uli_init.utils import base_units, unit_conversions
     import numpy as np
     import logging
 
     with job:
         logging.info("Creating system...")
-        if job.doc["sim_type"] == "melt": # Bulk melt systems
-            system = simulate.System(
+        if job.sp["system_type"] != "interface":
+            system = systems.System(
                     molecule = job.sp['molecule'],
                     para_weight = job.sp['para_weight'],
                     monomer_sequence = job.sp['monomer_sequence'],
                     density = job.sp['density'],
                     n_compounds = job.sp['n_compounds'],
-                    polymer_lengths = job.sp['polymer_lengths'],
+                    polymer_lengths = job.sp["polymer_lengths"],
+                    system_type = job.sp["system_type"],
                     forcefield = job.sp['forcefield'],
                     sample_pdi = job.doc.sample_pdi,
                     pdi = job.sp['pdi'],
@@ -108,7 +109,7 @@ def sample(job):
             job.doc['num_compounds'] = system.n_compounds
             job.doc['polymer_lengths'] = system.polymer_lengths
 
-        elif job.doc["sim_type"] == "interface": # Interface system
+        elif job.sp["system_type"] == "interface":
             slab_files = []
             ref_distances = []
             if job.doc['use_signac']:
@@ -136,10 +137,10 @@ def sample(job):
                 slab_files.append(job.sp['slab_file'])
                 ref_distances.append(job.sp['reference_distance'])
 
-            if len(ref_distances) == 2: #TODO --> Better handling of multiple ref distances
+            if len(ref_distances) == 2:
                 assert ref_distances[0] == ref_distances[1]
 
-            system = simulate.Interface(slabs = slab_files,
+            system = systems.Interface(slabs = slab_files,
                                         ref_distance = ref_distances[0],
                                         gap = job.sp['interface_gap'],
                                         forcefield = job.sp['forcefield'],
@@ -150,7 +151,7 @@ def sample(job):
             shrink_steps = None
             shrink_period = None
 
-        system.system_pmd.save('init.pdb', overwrite=True)
+        system.system_pmd.save('init.mol2', overwrite=True)
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
