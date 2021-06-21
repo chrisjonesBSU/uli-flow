@@ -91,8 +91,8 @@ def get_parameters():
 
     parameters = OrderedDict()
     ### System generation parameters ###
-    parameters["system_type"] = ["melt",
-            #"dilute",
+    parameters["system_type"] = [#"melt",
+            "stack",
             #"lamellar",
             #"coarse_grain",
             ]
@@ -101,16 +101,12 @@ def get_parameters():
                              ]
     parameters["para_weight"] = [0.70]
 
-    #parameters["monomer_sequence"] = ["PM"]
-    parameters["density"] = [0.9]
-    parameters["n_compounds"] = [
-            [5, 5, 5], 
-        ]
+    parameters["monomer_sequence"] = [None]
+    parameters["density"] = [0.5]
+    parameters["n_compounds"] = [[5]]
 
     #parameters["polymer_lengths"] = [None]
-    parameters["polymer_lengths"] = [
-            [5, 10, 15],
-        ]   
+    parameters["polymer_lengths"] = [[15]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -118,13 +114,16 @@ def get_parameters():
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
+    parameters["shrink_kT"] = [0.2]
 
     ### Simulation parameters ###
-    parameters["tau"] = [0.1]
+    parameters["tau_kt"] = [0.1]
+    parameters["tau_p"] = [0.1]
+    parameters["pressure"] = [0.1]
     parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
-    parameters["walls"] = [True]
+    parameters["walls"] = [False]
     parameters["procedure"] = [
             "quench",
             #"anneal"
@@ -146,16 +145,13 @@ def get_parameters():
     #parameters["schedule"] = [None]
 
     ### Do a few checks to save headaches later:
-    try:
-        parameters['para_weight']
-        parameters['monomer_sequence']
+    if [None] not in [
+			parameters["para_weight"], parameters["monomer_sequence"]
+			]:
         raise ValueError(
                 "You can only use one of `para_weight` and "
-                "`monomer_sequence`. Comment one of these lines out."
+                "`monomer_sequence`. Set the other to [None]"
                 )
-    except KeyError:
-        pass
-
     return list(parameters.keys()), list(product(*parameters.values()))
 
 custom_job_doc = {} # added keys and values to be added to each job document created

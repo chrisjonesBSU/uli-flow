@@ -101,7 +101,7 @@ def sample(job):
                     remove_hydrogens = job.sp['remove_hydrogens'],
                     seed = job.sp['system_seed']
                 )
-            shrink_kT = 10
+            shrink_kT = job.sp['shrink_kT'] 
             shrink_steps = 5e6
             shrink_period = 500
             job.doc['num_para'] = system.para
@@ -151,7 +151,7 @@ def sample(job):
             shrink_steps = None
             shrink_period = None
 
-        system.system_pmd.save('init.mol2', overwrite=True)
+        system.system.save('init.mol2', overwrite=True)
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
@@ -160,7 +160,8 @@ def sample(job):
                 target_box = None,
                 r_cut = 1.2,
                 e_factor = job.sp['e_factor'],
-                tau = job.sp['tau'],
+                tau_kt = job.sp['tau_kt'],
+				tau_p = job.sp['tau_p'],
                 dt = job.sp['dt'],
                 seed = job.sp['sim_seed'],
                 auto_scale = True,
@@ -189,6 +190,7 @@ def sample(job):
             logging.info("Beginning quench simulation...")
             simulation.quench(
                     kT = job.sp['kT_quench'],
+					pressure = job.sp['pressure'],
                     n_steps = job.sp['n_steps'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
@@ -211,6 +213,7 @@ def sample(job):
             simulation.anneal(
                     kT_init = job.sp['kT_anneal'][0],
                     kT_final = job.sp['kT_anneal'][1],
+					pressure = job.sp['pressure'],
                     step_sequence = job.sp['anneal_sequence'],
                     schedule = job.sp['schedule'],
                     shrink_kT = shrink_kT,
