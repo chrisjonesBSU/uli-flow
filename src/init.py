@@ -114,7 +114,6 @@ def get_parameters():
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
-    parameters["shrink_kT"] = [0.2]
 
     ### Simulation parameters ###
     parameters["tau_kt"] = [0.1]
@@ -123,7 +122,10 @@ def get_parameters():
     parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
+    parameters["neighbor_list"] = ["cell"]
     parameters["walls"] = [False]
+    parameters["shrink_kT"] = [0.2]
+    parameters["shrink_steps"] = [5e6]
     parameters["procedure"] = [
             "quench",
             #"anneal"
