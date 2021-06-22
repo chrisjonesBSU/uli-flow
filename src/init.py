@@ -91,8 +91,9 @@ def get_parameters():
 
     parameters = OrderedDict()
     ### System generation parameters ###
-    parameters["system_type"] = [#"melt",
-            "stack",
+    parameters["system_type"] = [
+			"pack",
+            #"stack",
             #"lamellar",
             #"coarse_grain",
             ]
@@ -102,11 +103,11 @@ def get_parameters():
     parameters["para_weight"] = [0.70]
 
     parameters["monomer_sequence"] = [None]
-    parameters["density"] = [0.5]
-    parameters["n_compounds"] = [[5]]
+    parameters["density"] = [0.8]
+    parameters["n_compounds"] = [[1]]
 
     #parameters["polymer_lengths"] = [None]
-    parameters["polymer_lengths"] = [[15]]   
+    parameters["polymer_lengths"] = [[50]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]

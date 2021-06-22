@@ -102,7 +102,7 @@ def sample(job):
                     seed = job.sp['system_seed']
                 )
             shrink_kT = job.sp['shrink_kT'] 
-            shrink_steps = jop.sp['shrink_steps']
+            shrink_steps = job.sp['shrink_steps']
             shrink_period = 500
             job.doc['num_para'] = system.para
             job.doc['num_meta'] = system.meta
@@ -161,7 +161,7 @@ def sample(job):
                 r_cut = 1.2,
                 e_factor = job.sp['e_factor'],
                 tau_kt = job.sp['tau_kt'],
-		tau_p = job.sp['tau_p'],
+		        tau_p = job.sp['tau_p'],
                 nlist = job.sp['neighbor_list'],
                 dt = job.sp['dt'],
                 seed = job.sp['sim_seed'],
