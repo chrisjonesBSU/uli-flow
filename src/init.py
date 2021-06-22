@@ -118,8 +118,8 @@ def get_parameters():
 
     ### Simulation parameters ###
     parameters["tau_kt"] = [0.1]
-    parameters["tau_p"] = [0.1]
-    parameters["pressure"] = [0.1]
+    parameters["tau_p"] = [None]
+    parameters["pressure"] = [None]
     parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
