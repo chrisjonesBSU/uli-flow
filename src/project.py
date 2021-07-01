@@ -76,7 +76,7 @@ def ind_sampling_done(job):
 @MyProject.operation
 @MyProject.post(sampled)
 def sample(job):
-    from uli_init import simulate, systems
+    from uli_init import simulate, system
     from uli_init.utils import base_units, unit_conversions
     import numpy as np
     import logging
@@ -84,7 +84,7 @@ def sample(job):
     with job:
         logging.info("Creating system...")
         if job.sp["system_type"] != "interface":
-            system = systems.System(
+            system = system.System(
                     molecule = job.sp['molecule'],
                     para_weight = job.sp['para_weight'],
                     monomer_sequence = job.sp['monomer_sequence'],
@@ -140,7 +140,7 @@ def sample(job):
             if len(ref_distances) == 2:
                 assert ref_distances[0] == ref_distances[1]
 
-            system = systems.Interface(slabs = slab_files,
+            system = system.Interface(slabs = slab_files,
                                         ref_distance = ref_distances[0],
                                         gap = job.sp['interface_gap'],
                                         forcefield = job.sp['forcefield'],
