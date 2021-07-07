@@ -42,7 +42,7 @@ def sampled(job):
 
 @MyProject.label
 def initialized(job):
-    return job.isfile("init.pdb")
+    return job.isfile("init.mol2")
 
 
 @MyProject.label
@@ -76,20 +76,22 @@ def ind_sampling_done(job):
 @MyProject.operation
 @MyProject.post(sampled)
 def sample(job):
-    from uli_init import simulate
+    from uli_init import simulate, system
     from uli_init.utils import base_units, unit_conversions
     import numpy as np
     import logging
 
     with job:
         logging.info("Creating system...")
-        if job.doc["sim_type"] == "melt": # Bulk melt systems
-            system = simulate.System(
+        if job.sp["system_type"] != "interface":
+            system = system.System(
                     molecule = job.sp['molecule'],
                     para_weight = job.sp['para_weight'],
+                    monomer_sequence = job.sp['monomer_sequence'],
                     density = job.sp['density'],
                     n_compounds = job.sp['n_compounds'],
-                    polymer_lengths = job.sp['polymer_lengths'],
+                    polymer_lengths = job.sp["polymer_lengths"],
+                    system_type = job.sp["system_type"],
                     forcefield = job.sp['forcefield'],
                     sample_pdi = job.doc.sample_pdi,
                     pdi = job.sp['pdi'],
@@ -99,15 +101,15 @@ def sample(job):
                     remove_hydrogens = job.sp['remove_hydrogens'],
                     seed = job.sp['system_seed']
                 )
-            shrink_kT = 10
-            shrink_steps = 5e6
+            shrink_kT = job.sp['shrink_kT'] 
+            shrink_steps = job.sp['shrink_steps']
             shrink_period = 500
             job.doc['num_para'] = system.para
             job.doc['num_meta'] = system.meta
             job.doc['num_compounds'] = system.n_compounds
             job.doc['polymer_lengths'] = system.polymer_lengths
 
-        elif job.doc["sim_type"] == "interface": # Interface system
+        elif job.sp["system_type"] == "interface":
             slab_files = []
             ref_distances = []
             if job.doc['use_signac']:
@@ -135,10 +137,10 @@ def sample(job):
                 slab_files.append(job.sp['slab_file'])
                 ref_distances.append(job.sp['reference_distance'])
 
-            if len(ref_distances) == 2: #TODO --> Better handling of multiple ref distances
+            if len(ref_distances) == 2:
                 assert ref_distances[0] == ref_distances[1]
 
-            system = simulate.Interface(slabs = slab_files,
+            system = system.Interface(slabs = slab_files,
                                         ref_distance = ref_distances[0],
                                         gap = job.sp['interface_gap'],
                                         forcefield = job.sp['forcefield'],
@@ -149,7 +151,7 @@ def sample(job):
             shrink_steps = None
             shrink_period = None
 
-        system.system_pmd.save('init.pdb', overwrite=True)
+        system.system.save('init.mol2', overwrite=True)
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
@@ -158,7 +160,9 @@ def sample(job):
                 target_box = None,
                 r_cut = 1.2,
                 e_factor = job.sp['e_factor'],
-                tau = job.sp['tau'],
+                tau_kt = job.sp['tau_kt'],
+		        tau_p = job.sp['tau_p'],
+                nlist = job.sp['neighbor_list'],
                 dt = job.sp['dt'],
                 seed = job.sp['sim_seed'],
                 auto_scale = True,
@@ -187,6 +191,7 @@ def sample(job):
             logging.info("Beginning quench simulation...")
             simulation.quench(
                     kT = job.sp['kT_quench'],
+					pressure = job.sp['pressure'],
                     n_steps = job.sp['n_steps'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
@@ -209,6 +214,7 @@ def sample(job):
             simulation.anneal(
                     kT_init = job.sp['kT_anneal'][0],
                     kT_final = job.sp['kT_anneal'][1],
+					pressure = job.sp['pressure'],
                     step_sequence = job.sp['anneal_sequence'],
                     schedule = job.sp['schedule'],
                     shrink_kT = shrink_kT,
@@ -216,102 +222,6 @@ def sample(job):
                     walls = job.sp['walls'],
                     shrink_period = shrink_period 
                     )
-
-@directives()
-@MyProject.operation
-@MyProject.pre(sampled)
-@MyProject.post(msd_done)
-def post_process(job):
-    '''
-    '''
-    import gsd.hoomd
-    import freud
-    import numpy as np
-    from cme_lab_utils import msd, rdf, sampler, gsd_utils
-    import logging
-    import matplotlib.pyplot as plt
-    
-    # Perform independence sampling:
-    print('Starting independent sampling...')
-    if job.sp['procedure'] == 'quench':
-        start_index = 0
-    elif job.sp['procedure'] == 'anneal': # Only want to sample from last temp
-        start_index = int(-job.sp['anneal_sequence'][-1] // job.doc['steps_per_log'])
-
-    job_log_file = np.genfromtxt(job.fn('sim_traj.log'),
-                                delimiter='\t',
-                                names=True
-                                )
-    pe = job_log_file['potential_energy']
-    samples = sampler.Mbar(pe[start_index:], nskip=1)
-    job.doc['production_start'] = samples.start # Starting index of production region
-    job.doc['production_ineff'] = samples.ineff # Statistical inefficiency of prod region
-    job.doc['production_size'] = samples.production_size # Size of prod region
-    job.doc['num_ind_samples'] = len(samples.indices)
-    sampled_data = job_log_file[start_index:][samples.start:][samples.indices]
-    col_names = [name for name in job_log_file.dtype.names]
-    headers = "{}\t"*(len(col_names) - 1)+"{}"
-    np.savetxt(job.fn('sim_traj_equil.log'),
-                sampled_data,
-                header = headers.format(*col_names)
-              )
-    print('Finished independent sampling...')
-
-    # Calculate some RDFs and MSDs from GSD files and save results to txt files
-    print()
-    types = [['ca', 'ca'], ['o', 'o']]
-    print('Starting RDF calculations...')
-    print('Types are {}'.format(types))
-    rdf_dir = os.path.join(job.ws, 'rdf-results')
-    if not os.path.exists(rdf_dir):
-        os.mkdir(rdf_dir)
-    for pair in types:
-        pair_rdf = rdf.gsd_rdf(job.fn("sim_traj.gsd"),
-                               pair[0],
-                               pair[1],
-                               start=-10
-                               )
-        x = pair_rdf.bin_centers
-        y = pair_rdf.rdf
-        fig = plt.figure()
-        plt.plot(x, y)
-        plt.title("RDF: Atom Types {} {}".format(*pair))
-        plt.xlabel('r')
-        plt.ylabel('g(r)')
-        fig.savefig(os.path.join(rdf_dir, "{}_{}.pdf".format(*pair)))
-        np.savetxt(os.path.join(rdf_dir, '{}_{}.txt'.format(*pair)),
-                   np.transpose([x, y]),
-                   header = "x,y", 
-                   delimiter=","
-                  )
-    print('Finished RDF calculations...')
-    print()
-    # Start MSD calculations
-    types = ["ca", "o"]
-    print('Starting MSD calculations...')
-    print('Types are {}'.format(types))
-    msd_dir = os.path.join(job.ws, 'msd-results')
-    if not os.path.exists(msd_dir):
-        os.mkdir(msd_dir)
-    for atom_type in types:
-        msd_results = msd.msd_from_gsd(job.fn("sim_traj.gsd"),
-                                       start=-15, stop=-1,
-                                       atom_type = atom_type,
-                                       msd_mode="window"
-                                      )
-        
-        seconds = np.arange(0, len(msd_results), 1) * job.doc['real_timestep'] * 1e-15 * job.doc['steps_per_frame']
-        fig = plt.figure()
-        plt.plot(seconds, msd_results)
-        plt.title("Mean Square Displacement")
-        plt.xlabel("Seconds")
-        plt.ylabel("MSD ($\AA^2$)")
-        fig.savefig(os.path.join(msd_dir, "{}.pdf".format(atom_type)))
-        np.savetxt(os.path.join(msd_dir, '{}.txt'.format(atom_type)),
-                   msd_results
-                   )
-    print('Finished MSD Calculations')
-
 
 if __name__ == "__main__":
     MyProject().main()

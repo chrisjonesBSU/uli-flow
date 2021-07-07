@@ -90,22 +90,24 @@ def get_parameters():
     '''
 
     parameters = OrderedDict()
-    # System generation parameters:
+    ### System generation parameters ###
+    parameters["system_type"] = [
+			"pack",
+            #"stack",
+            #"lamellar",
+            #"coarse_grain",
+            ]
     parameters["molecule"] = ['PEEK',
                              #'PEKK'
                              ]
     parameters["para_weight"] = [0.70]
-    parameters["density"] = [0.9]
-    #parameters["n_compounds"] = [None]
-    parameters["n_compounds"] = [
-                                 [5, 5, 5], # List of lists 
-                                 #[100, 150, 80], 
-                                 #[200, 300, 160]
-                                ]
+
+    parameters["monomer_sequence"] = [None]
+    parameters["density"] = [0.8]
+    parameters["n_compounds"] = [[1]]
+
     #parameters["polymer_lengths"] = [None]
-    parameters["polymer_lengths"] = [
-                                     [5, 10, 15] # List of lists
-                                    ]   # Must match length of n_compound lists
+    parameters["polymer_lengths"] = [[50]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -114,26 +116,45 @@ def get_parameters():
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
 
-    # Simulation parameters
-    parameters["tau"] = [0.1]
+    ### Simulation parameters ###
+    parameters["tau_kt"] = [0.1]
+    parameters["tau_p"] = [None]
+    parameters["pressure"] = [None]
     parameters["dt"] = [0.001]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
-    parameters["walls"] = [True]
-    parameters["procedure"] = [#"quench",
-                              "anneal"
-                              ]
-        # Quench related params:
-    #parameters["kT_quench"] = [1.5] # Reduced Temp
-    #parameters["n_steps"] = [1e7]
-        # Anneal related params
-    parameters["kT_anneal"] = [
-                               [6.0, 2.0]
-                              ] # List of [initial kT, final kT] Reduced Temps
-    parameters["anneal_sequence"] = [
-                                     [2e5, 1e5, 3e5, 5e5, 5e5, 1e5] # List of lists (n_steps)
-                                    ]
-    parameters["schedule"] = [None]
+    parameters["neighbor_list"] = ["cell"]
+    parameters["walls"] = [False]
+    parameters["shrink_kT"] = [0.2]
+    parameters["shrink_steps"] = [5e6]
+    parameters["procedure"] = [
+            "quench",
+            #"anneal"
+        ]
+
+    ### Quench related parameters ###
+    parameters["kT_quench"] = [1.5]
+    parameters["n_steps"] = [1e7]
+
+    ### Anneal related parameters ###
+    # List of [initial kT, final kT] Reduced Temps
+    #parameters["kT_anneal"] = [
+    #        [6.0, 2.0]
+    #    ]     
+    # List of lists of number of steps 
+    #parameters["anneal_sequence"] = [
+    #        [2e5, 1e5, 3e5, 5e5, 5e5, 1e5]
+    #    ]
+    #parameters["schedule"] = [None]
+
+    ### Do a few checks to save headaches later:
+    if [None] not in [
+			parameters["para_weight"], parameters["monomer_sequence"]
+			]:
+        raise ValueError(
+                "You can only use one of `para_weight` and "
+                "`monomer_sequence`. Set the other to [None]"
+                )
     return list(parameters.keys()), list(product(*parameters.values()))
 
 custom_job_doc = {} # added keys and values to be added to each job document created
@@ -146,7 +167,6 @@ def main():
         parent_statepoint = dict(zip(param_names, params))
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
-        parent_job.doc.setdefault("sim_type", "melt")
         try:
             parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
         except:
