@@ -44,6 +44,9 @@ def sampled(job):
 def initialized(job):
     return job.isfile("init.mol2")
 
+@MyProject.label
+def coarse_grained(job):
+    return job.isfile("cg_traj.gsd")
 
 @MyProject.label
 def rdf_done(job):
@@ -230,5 +233,9 @@ def sample(job):
                     shrink_period = shrink_period 
                     )
 
+@MyProject.operation
+@MyProjet.pre(sampled)
+@MyProject.post(coarse_grained)
+def coarse_grain(job)
 if __name__ == "__main__":
     MyProject().main()
