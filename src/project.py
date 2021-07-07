@@ -236,6 +236,39 @@ def sample(job):
 @MyProject.operation
 @MyProjet.pre(sampled)
 @MyProject.post(coarse_grained)
-def coarse_grain(job)
+def coarse_grain(job):
+    import gsd
+    import gsd.hoomd
+    try:
+        from paek_cg.coarse_grain import System
+    except ImportError:
+        msg = ("paek_cg is required to create a coarse-grained trajectory, "+
+                " but, it is not part of the default uli-init environment. "+
+                "See: https://github.com/chrisjonesBSU/paek_cg"
+                )
+        print(msg)
+        return
+    if job.sp['remove_hydrogens'] == True:
+        atoms_per_monomer = 22
+    else:
+        atoms_per_monomer = 36
+
+    system = System(
+            gsd_file=job.fn("sim_traj.gsd"),
+            atoms_per_monomer=atoms_per_monomer
+            ))
+    with open(job.fn("molecule_sequences.txt")) as f:
+        sequences = f.readlines()
+        for seq, mol in zip(sequences, system.molecules):
+            mol.sequence = seq,
+            mol.assign_types()
+
+    cg_path = os.path.join(job.ws, "cg_traj.gsd")
+    system.coarse_grain_trajectory(file_path=cg_path, use_monomers=True)
+
+
+
+    
+
 if __name__ == "__main__":
     MyProject().main()
