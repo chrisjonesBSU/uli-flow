@@ -108,6 +108,13 @@ def sample(job):
             job.doc['num_meta'] = system.meta
             job.doc['num_compounds'] = system.n_compounds
             job.doc['polymer_lengths'] = system.polymer_lengths
+            if system.molecule_sequences:
+                seq_file = open(
+                        os.path.join(job.ws, "molecule_sequences.txt"), "w"
+                        )
+                for seq in system.molecules_sequences:
+                    seq_file.write(seq + "\n")
+                seq_file.close()
 
         elif job.sp["system_type"] == "interface":
             slab_files = []
