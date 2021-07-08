@@ -265,10 +265,7 @@ def coarse_grain(job):
 
     cg_path = os.path.join(job.ws, "cg_traj.gsd")
     system.coarse_grain_trajectory(file_path=cg_path, use_monomers=True)
-
-
-
-    
+    job.doc["beads"] = "monomers"
 
 if __name__ == "__main__":
     MyProject().main()
