@@ -241,6 +241,7 @@ def coarse_grain(job):
     import gsd.hoomd
     try:
         from paek_cg.coarse_grain import System
+        from paek_cg import COMPOUND_DIR
     except ImportError:
         msg = ("paek_cg is required to create a coarse-grained trajectory, "+
                 " but, it is not part of the default uli-init environment. "+
@@ -248,24 +249,41 @@ def coarse_grain(job):
                 )
         print(msg)
         return
-    if job.sp['remove_hydrogens'] == True:
-        atoms_per_monomer = 22
+
+    f = open(os.path.join(COMPOUND_DIR, f"{job.sp['molecule']}.json"))
+    d = json.load(f)
+    f.close()
+    if job.sp['remove_hydrogens']:
+        atoms_per_mon = d["atoms_per_monomer_UA"]
     else:
-        atoms_per_monomer = 36
+        atoms_per_mon = d["atoms_per_monomer_AA"]
 
     system = System(
             gsd_file=job.fn("sim_traj.gsd"),
-            atoms_per_monomer=atoms_per_monomer
-            ))
+            atoms_per_monomer=atoms_per_mon
+            )
+
     with open(job.fn("molecule_sequences.txt")) as f:
         sequences = f.readlines()
         for seq, mol in zip(sequences, system.molecules):
             mol.sequence = seq,
             mol.assign_types()
 
-    cg_path = os.path.join(job.ws, "cg_traj.gsd")
-    system.coarse_grain_trajectory(file_path=cg_path, use_monomers=True)
-    job.doc["beads"] = "monomers"
+    comp_mapping = d['component_mappings']["ring_plus_linkage"]
+    for mon in system.monomers():
+        mon.generate_components(index_mapping=comp_mapping)
+
+    monomers_path = os.path.join(job.ws, "monomers_traj.gsd")
+    components_path = os.path.join(job.ws, "components_traj.gsd")
+
+    system.coarse_grain_trajectory(
+            file_path=monomers_path,
+            use_monomers=True
+            )
+    system.coarse_grain_trajectory(
+            file_path=components_path,
+            use_components=True
+            )
 
 if __name__ == "__main__":
     MyProject().main()
