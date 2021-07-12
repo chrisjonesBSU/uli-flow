@@ -234,7 +234,7 @@ def sample(job):
                     )
 
 @MyProject.operation
-@MyProjet.pre(sampled)
+@MyProject.pre(sampled)
 @MyProject.post(coarse_grained)
 def coarse_grain(job):
     import gsd
