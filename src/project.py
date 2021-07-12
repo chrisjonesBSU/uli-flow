@@ -115,7 +115,7 @@ def sample(job):
                 seq_file = open(
                         os.path.join(job.ws, "molecule_sequences.txt"), "w"
                         )
-                for seq in system.molecules_sequences:
+                for seq in system.molecule_sequences:
                     seq_file.write(seq + "\n")
                 seq_file.close()
 
