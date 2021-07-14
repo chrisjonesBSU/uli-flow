@@ -92,7 +92,7 @@ def get_parameters():
     parameters = OrderedDict()
     ### System generation parameters ###
     parameters["system_type"] = [
-			"pack",
+	    "pack",
             #"stack",
             #"lamellar",
             #"coarse_grain",
@@ -101,12 +101,9 @@ def get_parameters():
                              #'PEKK'
                              ]
     parameters["para_weight"] = [0.70]
-
     parameters["monomer_sequence"] = [None]
     parameters["density"] = [0.8]
     parameters["n_compounds"] = [[1]]
-
-    #parameters["polymer_lengths"] = [None]
     parameters["polymer_lengths"] = [[50]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
@@ -115,6 +112,7 @@ def get_parameters():
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
+    parameters["kwarg"] = [{}]
 
     ### Simulation parameters ###
     parameters["tau_kt"] = [0.1]

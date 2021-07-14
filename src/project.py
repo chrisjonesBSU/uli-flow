@@ -102,7 +102,8 @@ def sample(job):
                     Mw = job.sp['Mw'],
                     mass_dist_type = job.sp['mass_dist'],
                     remove_hydrogens = job.sp['remove_hydrogens'],
-                    seed = job.sp['system_seed']
+                    seed = job.sp['system_seed'],
+                    **job.sp["kwargs"]
                 )
             shrink_kT = job.sp['shrink_kT'] 
             shrink_steps = job.sp['shrink_steps']
